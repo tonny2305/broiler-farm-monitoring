@@ -719,30 +719,30 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto p-2">
-      <div className="flex justify-between items-center mb-2 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-400 to-orange-400 p-6 shadow-lg border border-amber-200/50">
-        <h1 className="text-3xl font-bold text-white bg-clip-text dark:text-amber-950">Monitoring Peternakan Ayam Broiler</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-500 p-4 sm:p-6 shadow-lg border border-emerald-200/50">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-0">Monitoring Peternakan Ayam Broiler</h1>
         <div className="flex space-x-2">
           {!isAdmin ? (
-            <Button variant="default" className="bg-gradient-to-r  hover:from-amber-600 hover:to-orange-500 text-white  transition-all duration-300 dark:text-amber-950" asChild>
+            <Button variant="default" className="bg-white/20 hover:bg-white/30 text-white transition-all duration-300" asChild>
               <Link href="/login" className="flex items-center">
                 <UserCogIcon className="h-5 w-5 mr-2" />
-                <span className="hidden md:inline">Admin</span>
+                <span className="inline sm:inline">Admin</span>
               </Link>
             </Button>
           ) : (
             <Button 
               variant="default" 
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white dark:text-amber-950  transition-all duration-300"
+              className="bg-red-500/80 hover:bg-red-500/100 text-white transition-all duration-300"
               onClick={handleLogout}
             >
               <LogOutIcon className="h-5 w-5 mr-2" />
-              <span className="hidden md:inline">Logout</span>
+              <span className="inline sm:inline">Logout</span>
             </Button>
           )}
           <Button 
             variant="default" 
             size="icon" 
-            className="bg-gradient-to-r  hover:from-amber-600 hover:to-orange-500 text-white dark:text-amber-950 transition-all duration-300 rounded-full" 
+            className="bg-white/20 hover:bg-white/30 text-white transition-all duration-300 rounded-full" 
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             {mounted && (theme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />)}
@@ -779,33 +779,39 @@ export default function DashboardPage() {
           {/* Informasi Batch Ayam (Ringkas) */}
           {chickenBatches.length > 0 && (
             <div className="flex flex-col gap-2 rounded-lg p-2 mt-1 mb-2">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-  <h2 className="text-lg font-semibold">Batch Ayam Aktif</h2>
-  <Badge
-    className={cn(
-      "rounded-md px-2 py-1",
-      getBatchStatusColor(getBatchStatus(getSelectedBatchAge()))
-    )}
-  >
-    {getBatchStatusLabel(getBatchStatus(getSelectedBatchAge()))}
-  </Badge>
-  <p className="text-sm text-muted-foreground">
-    {getSelectedBatch()?.quantity || 0} ekor • Umur {getSelectedBatchAge() || 0} hari
-  </p> {chickenBatches.map(batch => (
-                  <Button
-                    key={batch.id}
-                    variant={selectedBatchId === batch.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedBatchId(batch.id)}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                  <h2 className="text-lg font-semibold">Batch Ayam Aktif</h2>
+                  <Badge
+                    className={cn(
+                      "rounded-md px-2 py-1",
+                      getBatchStatusColor(getBatchStatus(getSelectedBatchAge()))
+                    )}
                   >
-                    {batch.id}
-                  </Button>
-                ))}
+                    {getBatchStatusLabel(getBatchStatus(getSelectedBatchAge()))}
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">
+                    {getSelectedBatch()?.quantity || 0} ekor • Umur {getSelectedBatchAge() || 0} hari
+                  </p>
+                  <div>
+                  {chickenBatches.map(batch => (
+                    <Button
+                      key={batch.id}
+                      variant={selectedBatchId === batch.id ? "default" : "outline"}
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => setSelectedBatchId(batch.id)}
+                    >
+                      {batch.id}
+                    </Button>
+                  ))}
                 </div>
+                </div>
+                
+                
 
                 {getLatestData() && (
-                  <div className="text-right">
+                  <div className="text-right mt-2 sm:mt-0">
                     <p className="text-sm text-muted-foreground">
                       Pembaruan data terakhir:
                     </p>
@@ -815,14 +821,12 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-             
-             
             </div>
           )}
 
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="lg:w-1/2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-2">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3 mb-2">
                 <Card>
                   <CardHeader className="">
                     <CardTitle>Temperature</CardTitle> 
@@ -1000,21 +1004,21 @@ export default function DashboardPage() {
                   <div className="flex justify-between items-center">
                     <CardTitle>Grafik Parameter Sensor</CardTitle>
                     <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
-                      <SelectTrigger className="w-[160px]">
+                      <SelectTrigger className="w-[160px] sm:w-[160px] xs:w-[120px] text-xs sm:text-sm">
                         <SelectValue>
                           {selectedTimeRange === '1h' ? '1 Jam Terakhir' :
                            selectedTimeRange === '6h' ? '6 Jam Terakhir' :
                            selectedTimeRange === '24h' ? '24 Jam Terakhir' :
-                           selectedTimeRange === '7d' ? '7 Hari Terakhir' :
-                           '30 Hari Terakhir'}
+                           selectedTimeRange === '7d' ? '7 Hari' :
+                           '30 Hari'}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="1h">1 Jam Terakhir</SelectItem>
                         <SelectItem value="6h">6 Jam Terakhir</SelectItem>
                         <SelectItem value="24h">24 Jam Terakhir</SelectItem>
-                        <SelectItem value="7d">7 Hari Terakhir</SelectItem>
-                        <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                        <SelectItem value="7d">7 Hari</SelectItem>
+                        <SelectItem value="30d">30 Hari</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1028,8 +1032,9 @@ export default function DashboardPage() {
                           className={cn(
                             "flex items-center gap-2 px-2 py-2 rounded-sm transition-all duration-200 cursor-pointer",
                             selectedParameters.includes(parameter) 
-                              ? "bg-amber-500/90 text-white shadow-md" 
-                              : "bg-white dark:bg-neutral-800 hover:bg-amber-50 dark:hover:bg-gray-600 shadow-sm"
+                              ? "bg-emerald-500/90 text-white shadow-md" 
+                              : "bg-white dark:bg-neutral-800 hover:bg-emerald-50 dark:hover:bg-gray-600 shadow-sm",
+                            "sm:w-f xs:w-[47%] text-xs sm:text-sm"
                           )}
                           onClick={() => handleParameterChange(parameter)}
                         >
@@ -1070,7 +1075,7 @@ export default function DashboardPage() {
                           <label
                             htmlFor={parameter}
                             className={cn(
-                              "text-sm font-medium select-none",
+                              "text-xs sm:text-sm font-medium select-none truncate",
                               selectedParameters.includes(parameter)
                                 ? "text-white"
                                 : "text-gray-700 dark:text-gray-200"
@@ -1081,20 +1086,22 @@ export default function DashboardPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="h-[265px] w-full p-0">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <div className="h-[265px] w-full p-0 max-w-[90%] mx-auto overflow-hidden">
+                      <ResponsiveContainer width="99%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                           <XAxis 
                             dataKey="time" 
                             angle={-45}
                             textAnchor="end"
                             height={60}
-                            interval={Math.floor(chartData.length / 6)}
-                            tick={{ fill: '#6b7280', fontSize: 12 }}
+                            interval={Math.floor(chartData.length / (window.innerWidth < 640 ? 4 : 6))}
+                            tick={{ fill: '#6b7280', fontSize: window.innerWidth < 640 ? 10 : 12 }}
+                            tickMargin={5}
                           />
                           <YAxis 
                             yAxisId="main"
+                            width={window.innerWidth < 640 ? 25 : 35}
                             label={{ 
                               value: selectedParameters.map(param => {
                                 switch(param) {
@@ -1113,12 +1120,15 @@ export default function DashboardPage() {
                                 }
                               }).filter((value, index, self) => self.indexOf(value) === index).join('\n'),
                               position: 'insideLeft', 
-                              offset: -10, 
+                              offset: -5, 
                               fill: '#6b7280',
                               angle: -90,
+                              style: {
+                                fontSize: window.innerWidth < 640 ? 10 : 12,
+                              }
                             }}
                             domain={['auto', 'auto']}
-                            tick={{ fill: '#6b7280', fontSize: 12 }}
+                            tick={{ fill: '#6b7280', fontSize: window.innerWidth < 640 ? 10 : 12 }}
                           />
                           <Tooltip 
                             formatter={(value: any, name: string) => {
@@ -1180,14 +1190,14 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-4 mt-4">
+          <div className="flex flex-col lg:flex-row gap-4 mt-4 ">
           <div className="lg:w-full">
           <Card className="border border-border/50 shadow-lg rounded-2xl pt-0 bg-card text-card-foreground">
-          <CardHeader className="bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 text-white rounded-t-2xl p-4">
-            <div className="flex justify-between items-center">
+          <CardHeader className="bg-gradient-to-r from-emerald-700 to-emerald-500 text-white rounded-t-2xl p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
               <div>
-                <CardTitle className="text-lg font-semibold text-white dark:text-amber-950">Statistik</CardTitle>
-                <CardDescription className="text-sm opacity-90 text-white/80 dark:text-amber-950">
+                <CardTitle className="text-lg font-semibold text-white">Statistik</CardTitle>
+                <CardDescription className="text-sm opacity-90 text-white/80">
                   Ringkasan statistik parameter dalam{' '}
                   {selectedTimeRange === '1h' ? '1 jam' :
                    selectedTimeRange === '6h' ? '6 jam' :
@@ -1196,75 +1206,183 @@ export default function DashboardPage() {
                 </CardDescription>
               </div>
               <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
-              <SelectTrigger className="w-[180px] bg-white/20 border-white/20 text-white">
-  <SelectValue placeholder="Pilih Rentang Waktu">
-    {selectedTimeRange === "1h"
-      ? "1 Jam Terakhir"
-      : selectedTimeRange === "6h"
-      ? "6 Jam Terakhir"
-      : selectedTimeRange === "24h"
-      ? "24 Jam Terakhir"
-      : selectedTimeRange === "7d"
-      ? "7 Hari Terakhir"
-      : selectedTimeRange === "30d"
-      ? "30 Hari Terakhir"
-      : "Pilih Rentang Waktu"}
-  </SelectValue>
+                <SelectTrigger className="w-[160px] sm:w-[180px] xs:w-[140px] bg-white/20 border-white/20 text-white text-xs sm:text-sm mt-2 sm:mt-0">
+                  <SelectValue placeholder="Pilih Rentang Waktu">
+                    {selectedTimeRange === "1h"
+                      ? "1 Jam Terakhir"
+                      : selectedTimeRange === "6h"
+                      ? "6 Jam Terakhir"
+                      : selectedTimeRange === "24h"
+                      ? "24 Jam Terakhir"
+                      : selectedTimeRange === "7d"
+                      ? "7 Hari"
+                      : selectedTimeRange === "30d"
+                      ? "30 Hari"
+                      : "Pilih Rentang"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1h">1 Jam Terakhir</SelectItem>
                   <SelectItem value="6h">6 Jam Terakhir</SelectItem>
                   <SelectItem value="24h">24 Jam Terakhir</SelectItem>
-                  <SelectItem value="7d">7 Hari Terakhir</SelectItem>
-                  <SelectItem value="30d">30 Hari Terakhir</SelectItem>
+                  <SelectItem value="7d">7 Hari</SelectItem>
+                  <SelectItem value="30d">30 Hari</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardHeader>
   
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                   
-                    <div>
-                      <h3 className="font-medium mb-2">Suhu</h3>
-                      <p>Min: {chartData.length > 0 ? Math.min(...chartData.map(d => d.temperature || 0)).toFixed(1) : '0'}°C</p>
-                      <p>Max: {chartData.length > 0 ? Math.max(...chartData.map(d => d.temperature || 0)).toFixed(1) : '0'}°C</p>
-                      <p>Rata-rata: {chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.temperature || 0), 0) / chartData.length).toFixed(1) : '0'}°C</p>
+                <CardContent className="pt-6 ">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 2a1 1 0 00-1 1v7.586l-4.293-4.293a1 1 0 00-1.414 1.414l6 6a1 1 0 001.414 0l6-6a1 1 0 00-1.414-1.414L11 10.586V3a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Suhu</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Min</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.min(...chartData.map(d => d.temperature || 0)).toFixed(1) : '0'}<span className="text-sm">°C</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.max(...chartData.map(d => d.temperature || 0)).toFixed(1) : '0'}<span className="text-sm">°C</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rata-rata</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.temperature || 0), 0) / chartData.length).toFixed(1) : '0'}<span className="text-sm">°C</span></p>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium mb-2">Kelembaban</h3>
-                      <p>Min: {chartData.length > 0 ? Math.min(...chartData.map(d => d.humidity || 0)).toFixed(1) : '0'}%</p>
-                      <p>Max: {chartData.length > 0 ? Math.max(...chartData.map(d => d.humidity || 0)).toFixed(1) : '0'}%</p>
-                      <p>Rata-rata: {chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.humidity || 0), 0) / chartData.length).toFixed(1) : '0'}%</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5.5 17a4.5 4.5 0 01-1.44-8.765 4.5 4.5 0 018.302-3.046 3.5 3.5 0 014.504 4.272A4 4 0 0115 17H5.5z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Kelembaban</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Min</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.min(...chartData.map(d => d.humidity || 0)).toFixed(1) : '0'}<span className="text-sm">%</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.max(...chartData.map(d => d.humidity || 0)).toFixed(1) : '0'}<span className="text-sm">%</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rata-rata</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.humidity || 0), 0) / chartData.length).toFixed(1) : '0'}<span className="text-sm">%</span></p>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium mb-2">Amonia (NH₃)</h3>
-                      <p>Min: {chartData.length > 0 ? Math.min(...chartData.map(d => d.ammonia || 0)).toFixed(3) : '0'} ppm</p>
-                      <p>Max: {chartData.length > 0 ? Math.max(...chartData.map(d => d.ammonia || 0)).toFixed(3) : '0'} ppm</p>
-                      <p>Rata-rata: {chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.ammonia || 0), 0) / chartData.length).toFixed(3) : '0'} ppm</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Amonia (NH₃)</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Min</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.min(...chartData.map(d => d.ammonia || 0)).toFixed(3) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.max(...chartData.map(d => d.ammonia || 0)).toFixed(3) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rata-rata</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.ammonia || 0), 0) / chartData.length).toFixed(3) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium mb-2">Metana (CH₄)</h3>
-                      <p>Min: {chartData.length > 0 ? Math.min(...chartData.map(d => d.methane || 0)).toFixed(2) : '0'} ppm</p>
-                      <p>Max: {chartData.length > 0 ? Math.max(...chartData.map(d => d.methane || 0)).toFixed(2) : '0'} ppm</p>
-                      <p>Rata-rata: {chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.methane || 0), 0) / chartData.length).toFixed(2) : '0'} ppm</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Metana (CH₄)</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Min</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.min(...chartData.map(d => d.methane || 0)).toFixed(2) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.max(...chartData.map(d => d.methane || 0)).toFixed(2) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rata-rata</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.methane || 0), 0) / chartData.length).toFixed(2) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium mb-2">Hidrogen Sulfida (H₂S)</h3>
-                      <p>Min: {chartData.length > 0 ? Math.min(...chartData.map(d => d.h2s || 0)).toFixed(4) : '0'} ppm</p>
-                      <p>Max: {chartData.length > 0 ? Math.max(...chartData.map(d => d.h2s || 0)).toFixed(4) : '0'} ppm</p>
-                      <p>Rata-rata: {chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.h2s || 0), 0) / chartData.length).toFixed(4) : '0'} ppm</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Hidrogen Sulfida (H₂S)</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Min</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.min(...chartData.map(d => d.h2s || 0)).toFixed(4) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.max(...chartData.map(d => d.h2s || 0)).toFixed(4) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rata-rata</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.h2s || 0), 0) / chartData.length).toFixed(4) : '0'}<span className="text-sm"> ppm</span></p>
+                        </div>
+                      </div>
                     </div>
                     
-                    <div>
-                      <h3 className="font-medium mb-2">Intensitas Cahaya</h3>
-                      <p>Min: {chartData.length > 0 ? Math.min(...chartData.map(d => d.intensity || 0)).toFixed(2) : '0'} lux</p>
-                      <p>Max: {chartData.length > 0 ? Math.max(...chartData.map(d => d.intensity || 0)).toFixed(2) : '0'} lux</p>
-                      <p>Rata-rata: {chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.intensity || 0), 0) / chartData.length).toFixed(2) : '0'} lux</p>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Intensitas Cahaya</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Min</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.min(...chartData.map(d => d.intensity || 0)).toFixed(2) : '0'}<span className="text-sm"> lux</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Max</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? Math.max(...chartData.map(d => d.intensity || 0)).toFixed(2) : '0'}<span className="text-sm"> lux</span></p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 dark:bg-gray-900 p-2 text-center">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rata-rata</p>
+                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{chartData.length > 0 ? (chartData.reduce((sum, d) => sum + (d.intensity || 0), 0) / chartData.length).toFixed(2) : '0'}<span className="text-sm"> lux</span></p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
