@@ -16,8 +16,8 @@ import { onValue, get } from 'firebase/database';
 import { getSensorDataRef, getChickenDataRef } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useRef } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
@@ -461,7 +461,7 @@ export default function ReportsPage() {
         ]
       ];
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         head: [summaryData[0]],
         body: summaryData.slice(1),
         startY: 60,
@@ -471,7 +471,7 @@ export default function ReportsPage() {
       });
 
       doc.setFontSize(14);
-      doc.text('Laporan Alert', 14, (doc as any).lastAutoTable.finalY + 20);
+      doc.text('Laporan Alert', 14, doc.lastAutoTable.finalY + 20);
       doc.setFontSize(10);
 
       // Ringkasan Alert
@@ -485,10 +485,10 @@ export default function ReportsPage() {
         ['Intensitas', alertCounts.intensity.toString()]
       ];
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         head: [alertSummaryData[0]],
         body: alertSummaryData.slice(1),
-        startY: (doc as any).lastAutoTable.finalY + 25,
+        startY: doc.lastAutoTable.finalY + 25,
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8 }
@@ -496,7 +496,7 @@ export default function ReportsPage() {
 
       // Distribusi Alert
       doc.setFontSize(14);
-      doc.text('Distribusi Alert', 14, (doc as any).lastAutoTable.finalY + 20);
+      doc.text('Distribusi Alert', 14, doc.lastAutoTable.finalY + 20);
       doc.setFontSize(10);
 
       const alertDistributionData = alertPieData.map(item => [
@@ -505,19 +505,18 @@ export default function ReportsPage() {
         `${(item.value / Object.values(alertCounts).reduce((a, b) => a + b, 0) * 100).toFixed(1)}%`
       ]);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         head: [['Parameter', 'Jumlah', 'Persentase']],
         body: alertDistributionData,
-        startY: (doc as any).lastAutoTable.finalY + 25,
+        startY: doc.lastAutoTable.finalY + 25,
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8 }
       });
 
-
       // Detail Data
       doc.setFontSize(14);
-      doc.text('Detail Data', 14, (doc as any).lastAutoTable.finalY + 20);
+      doc.text('Detail Data', 14, doc.lastAutoTable.finalY + 20);
       doc.setFontSize(10);
 
       const detailData = filteredData.map(data => [
@@ -530,17 +529,15 @@ export default function ReportsPage() {
         data.intensity.toFixed(2)
       ]);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         head: [['Waktu', 'Suhu (°C)', 'Kelembaban (%)', 'Amonia (ppm)', 'Metana (ppm)', 'H2S (ppm)', 'Intensitas (lux)']],
         body: detailData,
-        startY: (doc as any).lastAutoTable.finalY + 25,
+        startY: doc.lastAutoTable.finalY + 25,
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 7 }
       });
 
-      // Laporan Alert
-    
       // Download PDF
       doc.save(`Laporan_Monitoring_${format(new Date(), 'dd-MM-yyyy')}.pdf`);
     } catch (error) {

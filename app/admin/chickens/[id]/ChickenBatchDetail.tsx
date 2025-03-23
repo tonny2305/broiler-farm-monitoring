@@ -367,4 +367,4 @@ export default function ChickenBatchDetail({ params }: { params: { id: string } 
       </div>
     </div>
   );
-} 
+}
