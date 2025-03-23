@@ -102,7 +102,7 @@ export default function PublicAdminSetupPage() {
               <p className="text-sm text-muted-foreground mb-4">Email: tonny.wahyu.aji.student@stmkg.ac.id</p>
               <Button 
                 onClick={setupTonny} 
-                disabled={isLoading || isSettingUpTonny && success}
+                disabled={isLoading || (isSettingUpTonny && !!success)}
                 className="w-full"
               >
                 {isLoading && isSettingUpTonny ? 'Memproses...' : isSettingUpTonny && success ? 'Berhasil' : 'Tetapkan Sebagai Admin'}
@@ -115,7 +115,7 @@ export default function PublicAdminSetupPage() {
               <p className="text-sm text-muted-foreground mb-4">Email: yobel.em69@gmail.com</p>
               <Button 
                 onClick={setupYobel} 
-                disabled={isLoading || isSettingUpYobel && success}
+                disabled={isLoading || (isSettingUpYobel && !!success)}
                 className="w-full"
               >
                 {isLoading && isSettingUpYobel ? 'Memproses...' : isSettingUpYobel && success ? 'Berhasil' : 'Tetapkan Sebagai Admin'}
