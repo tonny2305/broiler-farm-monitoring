@@ -471,7 +471,7 @@ export default function ReportsPage() {
       });
 
       doc.setFontSize(14);
-      doc.text('Laporan Alert', 14, doc.lastAutoTable.finalY + 20);
+      doc.text('Laporan Alert', 14, (doc as any).lastAutoTable.finalY + 20);
       doc.setFontSize(10);
 
       // Ringkasan Alert
@@ -488,7 +488,7 @@ export default function ReportsPage() {
       autoTable(doc, {
         head: [alertSummaryData[0]],
         body: alertSummaryData.slice(1),
-        startY: doc.lastAutoTable.finalY + 25,
+        startY: (doc as any).lastAutoTable.finalY + 25,
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8 }
@@ -496,7 +496,7 @@ export default function ReportsPage() {
 
       // Distribusi Alert
       doc.setFontSize(14);
-      doc.text('Distribusi Alert', 14, doc.lastAutoTable.finalY + 20);
+      doc.text('Distribusi Alert', 14, (doc as any).lastAutoTable.finalY + 20);
       doc.setFontSize(10);
 
       const alertDistributionData = alertPieData.map(item => [
@@ -508,7 +508,7 @@ export default function ReportsPage() {
       autoTable(doc, {
         head: [['Parameter', 'Jumlah', 'Persentase']],
         body: alertDistributionData,
-        startY: doc.lastAutoTable.finalY + 25,
+        startY: (doc as any).lastAutoTable.finalY + 25,
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8 }
@@ -516,7 +516,7 @@ export default function ReportsPage() {
 
       // Detail Data
       doc.setFontSize(14);
-      doc.text('Detail Data', 14, doc.lastAutoTable.finalY + 20);
+      doc.text('Detail Data', 14, (doc as any).lastAutoTable.finalY + 20);
       doc.setFontSize(10);
 
       const detailData = filteredData.map(data => [
@@ -532,7 +532,7 @@ export default function ReportsPage() {
       autoTable(doc, {
         head: [['Waktu', 'Suhu (°C)', 'Kelembaban (%)', 'Amonia (ppm)', 'Metana (ppm)', 'H2S (ppm)', 'Intensitas (lux)']],
         body: detailData,
-        startY: doc.lastAutoTable.finalY + 25,
+        startY: (doc as any).lastAutoTable.finalY + 25,
         theme: 'grid',
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 7 }
