@@ -542,6 +542,22 @@ export default function DashboardPage() {
     }
   };
 
+  // Fungsi untuk mendapatkan rentang usia berdasarkan status
+  const getBatchAgeRange = (status: string) => {
+    switch (status) {
+      case 'starter':
+        return '0-7 hari';
+      case 'grower':
+        return '8-21 hari';
+      case 'finisher':
+        return '22-35 hari';
+      case 'ready':
+        return '>35 hari';
+      default:
+        return '';
+    }
+  };
+
   // Fungsi untuk mengecek status parameter
   const getParameterStatus = (value: number, type: keyof SensorData) => {
     // Dapatkan umur ayam terbaru (dalam hari)
@@ -780,38 +796,39 @@ export default function DashboardPage() {
           {chickenBatches.length > 0 && (
             <div className="flex flex-col gap-2 rounded-lg p-2 mt-1 mb-2">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                  <h2 className="text-lg font-semibold">Batch Ayam Aktif</h2>
-                  <Badge
-                    className={cn(
-                      "rounded-md px-2 py-1",
-                      getBatchStatusColor(getBatchStatus(getSelectedBatchAge()))
-                    )}
-                  >
-                    {getBatchStatusLabel(getBatchStatus(getSelectedBatchAge()))}
-                  </Badge>
-                  <p className="text-sm text-muted-foreground">
-                    {getSelectedBatch()?.quantity || 0} ekor • Umur {getSelectedBatchAge() || 0} hari
-                  </p>
-                  <div>
-                  {chickenBatches.map(batch => (
-                    <Button
-                      key={batch.id}
-                      variant={selectedBatchId === batch.id ? "default" : "outline"}
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => setSelectedBatchId(batch.id)}
-                    >
-                      {batch.id}
-                    </Button>
-                  ))}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                    <h2 className="text-lg font-semibold">Batch Ayam Aktif</h2>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                      <span className={cn(
+                        "px-2 py-1 rounded-md",
+                        getBatchStatusColor(getBatchStatus(getSelectedBatchAge()))
+                      )}>
+                        {getBatchStatusLabel(getBatchStatus(getSelectedBatchAge())).split(' ')[0]} ({getBatchAgeRange(getBatchStatus(getSelectedBatchAge()))})
+                      </span>
+                      <span>•</span>
+                      <span>{getSelectedBatch()?.quantity || 0} ekor</span>
+                      <span>•</span>
+                      <span>Umur {getSelectedBatchAge() || 0} hari</span>
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+                    {chickenBatches.map(batch => (
+                      <Button
+                        key={batch.id}
+                        variant={selectedBatchId === batch.id ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => setSelectedBatchId(batch.id)}
+                      >
+                        {batch.id}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-                </div>
-                
-                
 
                 {getLatestData() && (
-                  <div className="text-right mt-2 sm:mt-0">
+                  <div className="text-left sm:text-right mt-2 sm:mt-0 w-full sm:w-auto">
                     <p className="text-sm text-muted-foreground">
                       Pembaruan data terakhir:
                     </p>
@@ -834,7 +851,7 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-1">
-                      <p className="text-2xl font-bold">{formatValue(latestData?.temperature, 1)}<span className="text-xl"> °C</span></p>
+                      <p className="text-2xl font-bold">{formatValue(latestData?.temperature, 1)}<span className="text-sm font-bold"> °C</span></p>
                       {latestData && (
                         <div className="flex flex-col gap-1">
                           <Badge 
@@ -862,7 +879,7 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-1">
-                      <p className="text-2xl font-bold">{formatValue(latestData?.humidity, 1)}<span className="text-xl"> %</span></p>
+                      <p className="text-2xl font-bold">{formatValue(latestData?.humidity, 1)}<span className="text-sm font-bold"> %</span></p>
                       {latestData && (
                         <div className="flex flex-col gap-1">
                           <Badge 
@@ -890,7 +907,10 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-1">
-                      <p className="text-2xl font-bold">{formatValue(latestData?.ammonia, 3)}<span className="text-xl"> ppm</span></p>
+                      <div className="flex items-baseline">
+                        <p className="text-2xl font-bold">{formatValue(latestData?.ammonia, 3)}</p>
+                        <span className="text-md font-bold ml-1">ppm</span>
+                      </div>
                       {latestData && (
                         <div className="flex flex-col gap-1">
                           <Badge 
@@ -899,15 +919,13 @@ export default function DashboardPage() {
                           >
                             {getStatusLabel(getParameterStatus(latestData?.ammonia ?? 0, 'ammonia'))}
                           </Badge>
-                          
-                         
                         </div>
                       )}
                     </div>
                     <Progress 
-                            value={getProgressValue(latestData?.ammonia ?? 0, 'ammonia')} 
-                            className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.ammonia ?? 0, 'ammonia'))}`}
-                          />
+                      value={getProgressValue(latestData?.ammonia ?? 0, 'ammonia')} 
+                      className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.ammonia ?? 0, 'ammonia'))}`}
+                    />
                     <p className="text-xs text-muted-foreground mt-1">Nilai ideal: {getIdealRange('ammonia')}</p>
                   </CardContent>
                 </Card>
@@ -918,7 +936,10 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-1">
-                      <p className="text-2xl font-bold">{formatValue(latestData?.methane, 2)}<span className="text-xl"> ppm</span></p>
+                      <div className="flex items-baseline">
+                        <p className="text-2xl font-bold">{formatValue(latestData?.methane, 2)}</p>
+                        <span className="text-md font-bold ml-1">ppm</span>
+                      </div>
                       {latestData && (
                         <div className="flex flex-col gap-1">
                           <Badge 
@@ -927,15 +948,13 @@ export default function DashboardPage() {
                           >
                             {getStatusLabel(getParameterStatus(latestData?.methane ?? 0, 'methane'))}
                           </Badge>
-                          
-                          
                         </div>
                       )}
                     </div>
                     <Progress 
-                            value={getProgressValue(latestData?.methane ?? 0, 'methane')} 
-                            className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.methane ?? 0, 'methane'))}`}
-                          />
+                      value={getProgressValue(latestData?.methane ?? 0, 'methane')} 
+                      className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.methane ?? 0, 'methane'))}`}
+                    />
                     <p className="text-xs text-muted-foreground mt-1">Nilai ideal: {getIdealRange('methane')}</p>
                   </CardContent>
                 </Card>
@@ -946,7 +965,10 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-1">
-                      <p className="text-2xl font-bold">{formatValue(latestData?.h2s, 3)}<span className="text-xl"> ppm</span></p>
+                      <div className="flex items-baseline">
+                        <p className="text-2xl font-bold">{formatValue(latestData?.h2s, 3)}</p>
+                        <span className="text-md font-bold ml-1">ppm</span>
+                      </div>
                       {latestData && (
                         <div className="flex flex-col gap-1">
                           <Badge 
@@ -955,15 +977,13 @@ export default function DashboardPage() {
                           >
                             {getStatusLabel(getParameterStatus(latestData?.h2s ?? 0, 'h2s'))}
                           </Badge>
-                          
-                         
                         </div>
                       )}
                     </div>
                     <Progress 
-                            value={getProgressValue(latestData?.h2s ?? 0, 'h2s')} 
-                            className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.h2s ?? 0, 'h2s'))}`}
-                          />
+                      value={getProgressValue(latestData?.h2s ?? 0, 'h2s')} 
+                      className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.h2s ?? 0, 'h2s'))}`}
+                    />
                     <p className="text-xs text-muted-foreground mt-1">Nilai ideal: {getIdealRange('h2s')}</p>
                   </CardContent>
                 </Card>
@@ -974,7 +994,10 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-1">
-                      <p className="text-2xl font-bold">{formatValue(latestData?.intensity, 2)}<span className="text-xl"> lux</span></p>
+                      <div className="flex items-baseline">
+                        <p className="text-2xl font-bold">{formatValue(latestData?.intensity, 2)}</p>
+                        <span className="text-md font-bold ml-1">lux</span>
+                      </div>
                       {latestData && (
                         <div className="flex flex-col gap-1">
                           <Badge 
@@ -983,15 +1006,13 @@ export default function DashboardPage() {
                           >
                             {getStatusLabel(getParameterStatus(latestData?.intensity ?? 0, 'intensity'))}
                           </Badge>
-                          
-                          
                         </div>
                       )}
                     </div>
                     <Progress 
-                            value={getProgressValue(latestData?.intensity ?? 0, 'intensity')} 
-                            className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.intensity ?? 0, 'intensity'))}`}
-                          />
+                      value={getProgressValue(latestData?.intensity ?? 0, 'intensity')} 
+                      className={`h-2 mt-1 ${getProgressBarColor(getParameterStatus(latestData?.intensity ?? 0, 'intensity'))}`}
+                    />
                     <p className="text-xs text-muted-foreground mt-1">Nilai ideal: {getIdealRange('intensity')}</p>
                   </CardContent>
                 </Card>
