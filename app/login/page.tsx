@@ -140,15 +140,13 @@ export default function LoginPage() {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col mt-4 ">
-            <Button type="submit" className=" w-[420px] hover:cursor-pointer" disabled={isLoading}>
+          <CardFooter className="flex flex-col gap-4 mt-4">
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Memproses...' : 'Masuk'}
             </Button>
-            <div className="text-center text-sm">
-              <Link href="/" className="text-primary hover:underline">
-                Kembali ke halaman utama
-              </Link>
-            </div>
+            <Link href="/" className="text-primary hover:underline text-center text-sm w-full">
+              Kembali ke halaman utama
+            </Link>
           </CardFooter>
         </form>
       </Card>
