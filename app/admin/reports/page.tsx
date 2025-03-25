@@ -585,63 +585,9 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">Laporan Monitoring</h1>
-        <div className="flex flex-col lg:flex-row items-start gap-4">
-          <Select value={dateRange} onValueChange={(value: '7days' | '30days' | 'custom') => {
-            setDateRange(value);
-            if (value === '7days') {
-              setStartDate(subDays(new Date(), 7));
-              setEndDate(new Date());
-            } else if (value === '30days') {
-              setStartDate(subDays(new Date(), 30));
-              setEndDate(new Date());
-            }
-          }}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Pilih rentang waktu" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7days">7 Hari Terakhir</SelectItem>
-              <SelectItem value="30days">30 Hari Terakhir</SelectItem>
-              <SelectItem value="custom">Kustom</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {dateRange === 'custom' && (
-            <div className="flex flex-col lg:flex-row items-center gap-2 w-full lg:w-auto">
-              <div className="flex items-center gap-2">
-                <Input
-                  type="text"
-                  placeholder="DD/MM/YYYY"
-                  value={startDateInput}
-                  onChange={(e) => {
-                    const formatted = formatDateInput(e.target.value);
-                    if (formatted.length <= 10) {
-                      setStartDateInput(formatted);
-                      validateAndUpdateDate(formatted, setStartDate);
-                    }
-                  }}
-                  className="w-[120px]"
-                />
-                <span className="text-sm text-muted-foreground">sampai</span>
-                <Input
-                  type="text"
-                  placeholder="DD/MM/YYYY"
-                  value={endDateInput}
-                  onChange={(e) => {
-                    const formatted = formatDateInput(e.target.value);
-                    if (formatted.length <= 10) {
-                      setEndDateInput(formatted);
-                      validateAndUpdateDate(formatted, setEndDate);
-                    }
-                  }}
-                  className="w-[120px]"
-                />
-              </div>
-            </div>
-          )}
-
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold tracking-tight">Laporan Monitoring</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center whitespace-nowrap">
@@ -660,6 +606,60 @@ export default function ReportsPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Select value={dateRange} onValueChange={(value: '7days' | '30days' | 'custom') => {
+            setDateRange(value);
+            if (value === '7days') {
+              setStartDate(subDays(new Date(), 7));
+              setEndDate(new Date());
+            } else if (value === '30days') {
+              setStartDate(subDays(new Date(), 30));
+              setEndDate(new Date());
+            }
+          }}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Pilih rentang waktu" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7days">7 Hari Terakhir</SelectItem>
+              <SelectItem value="30days">30 Hari Terakhir</SelectItem>
+              <SelectItem value="custom">Kustom</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {dateRange === 'custom' && (
+            <div className="flex items-center gap-2">
+              <Input
+                type="text"
+                placeholder="DD/MM/YYYY"
+                value={startDateInput}
+                onChange={(e) => {
+                  const formatted = formatDateInput(e.target.value);
+                  if (formatted.length <= 10) {
+                    setStartDateInput(formatted);
+                    validateAndUpdateDate(formatted, setStartDate);
+                  }
+                }}
+                className="w-full sm:w-[140px]"
+              />
+              <span className="text-sm text-muted-foreground px-1">sampai</span>
+              <Input
+                type="text"
+                placeholder="DD/MM/YYYY"
+                value={endDateInput}
+                onChange={(e) => {
+                  const formatted = formatDateInput(e.target.value);
+                  if (formatted.length <= 10) {
+                    setEndDateInput(formatted);
+                    validateAndUpdateDate(formatted, setEndDate);
+                  }
+                }}
+                className="w-full sm:w-[140px]"
+              />
+            </div>
+          )}
         </div>
       </div>
 
