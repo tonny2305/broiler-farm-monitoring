@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, differenceInDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Download, Loader2, AlertTriangle, FileText, FileSpreadsheet } from 'lucide-react';
+import { Download, Loader2, AlertTriangle, FileText, FileSpreadsheet, Calendar as CalendarIcon } from 'lucide-react';
 import { onValue, get } from 'firebase/database';
 import { getSensorDataRef, getChickenDataRef } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,7 @@ import autoTable from 'jspdf-autotable';
 import { useRef } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
+import { Input } from '@/components/ui/input';
 
 interface SensorData {
   temperature: number;
@@ -113,9 +114,43 @@ export default function ReportsPage() {
   const [dateRange, setDateRange] = useState<'7days' | '30days' | 'custom'>('7days');
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date>(new Date());
+  const [startDateInput, setStartDateInput] = useState("");
+  const [endDateInput, setEndDateInput] = useState("");
   const [activeTab, setActiveTab] = useState('overview');
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<'pdf' | 'excel' | null>(null);
+
+  // Format tanggal untuk input
+  useEffect(() => {
+    if (startDate) {
+      setStartDateInput(format(startDate, "dd/MM/yyyy"));
+    }
+    if (endDate) {
+      setEndDateInput(format(endDate, "dd/MM/yyyy"));
+    }
+  }, [startDate, endDate]);
+
+  // Fungsi untuk memformat input tanggal
+  const formatDateInput = (value: string) => {
+    // Hapus semua karakter non-digit
+    const numbers = value.replace(/\D/g, '');
+    
+    // Format dengan menambahkan slash
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 4) return numbers.slice(0, 2) + '/' + numbers.slice(2);
+    return numbers.slice(0, 2) + '/' + numbers.slice(2, 4) + '/' + numbers.slice(4, 8);
+  };
+
+  // Fungsi untuk memvalidasi dan mengupdate tanggal
+  const validateAndUpdateDate = (dateStr: string, setDate: (date: Date) => void) => {
+    if (dateStr.length === 10) {
+      const [day, month, year] = dateStr.split('/');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (!isNaN(date.getTime())) {
+        setDate(date);
+      }
+    }
+  };
 
   // Ambil data dari Firebase
   useEffect(() => {
@@ -552,7 +587,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">Laporan Monitoring</h1>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col lg:flex-row items-start gap-4">
           <Select value={dateRange} onValueChange={(value: '7days' | '30days' | 'custom') => {
             setDateRange(value);
             if (value === '7days') {
@@ -574,46 +609,42 @@ export default function ReportsPage() {
           </Select>
 
           {dateRange === 'custom' && (
-            <div className="flex items-center space-x-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'PPP', { locale: id }) : "Pilih tanggal"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date: Date | undefined) => date && setStartDate(date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <span>-</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'PPP', { locale: id }) : "Pilih tanggal"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date: Date | undefined) => date && setEndDate(date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="flex flex-col lg:flex-row items-center gap-2 w-full lg:w-auto">
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="DD/MM/YYYY"
+                  value={startDateInput}
+                  onChange={(e) => {
+                    const formatted = formatDateInput(e.target.value);
+                    if (formatted.length <= 10) {
+                      setStartDateInput(formatted);
+                      validateAndUpdateDate(formatted, setStartDate);
+                    }
+                  }}
+                  className="w-[120px]"
+                />
+                <span className="text-sm text-muted-foreground">sampai</span>
+                <Input
+                  type="text"
+                  placeholder="DD/MM/YYYY"
+                  value={endDateInput}
+                  onChange={(e) => {
+                    const formatted = formatDateInput(e.target.value);
+                    if (formatted.length <= 10) {
+                      setEndDateInput(formatted);
+                      validateAndUpdateDate(formatted, setEndDate);
+                    }
+                  }}
+                  className="w-[120px]"
+                />
+              </div>
             </div>
           )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center">
+              <Button variant="outline" className="flex items-center whitespace-nowrap">
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>

@@ -46,6 +46,8 @@ export default function ExportPage() {
   const [dateRange, setDateRange] = useState<string>('last7days');
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const [startDateInput, setStartDateInput] = useState("");
+  const [endDateInput, setEndDateInput] = useState("");
   const [selectedBatchId, setSelectedBatchId] = useState<string>('all');
   const [isExporting, setIsExporting] = useState(false);
 
@@ -247,6 +249,38 @@ export default function ExportPage() {
         break;
     }
   }, [dateRange]);
+
+  // Format tanggal untuk input
+  useEffect(() => {
+    if (startDate) {
+      setStartDateInput(format(startDate, "dd/MM/yyyy"));
+    }
+    if (endDate) {
+      setEndDateInput(format(endDate, "dd/MM/yyyy"));
+    }
+  }, [startDate, endDate]);
+
+  // Fungsi untuk memformat input tanggal
+  const formatDateInput = (value: string) => {
+    // Hapus semua karakter non-digit
+    const numbers = value.replace(/\D/g, '');
+    
+    // Format dengan menambahkan slash
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 4) return numbers.slice(0, 2) + '/' + numbers.slice(2);
+    return numbers.slice(0, 2) + '/' + numbers.slice(2, 4) + '/' + numbers.slice(4, 8);
+  };
+
+  // Fungsi untuk memvalidasi dan mengupdate tanggal
+  const validateAndUpdateDate = (dateStr: string, setDate: (date: Date) => void) => {
+    if (dateStr.length === 10) {
+      const [day, month, year] = dateStr.split('/');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      if (!isNaN(date.getTime())) {
+        setDate(date);
+      }
+    }
+  };
 
   // Fungsi untuk mengekspor data
   const exportData = (type: 'sensor' | 'chicken') => {
@@ -547,56 +581,36 @@ export default function ExportPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-2">
                   <div className="space-y-2">
                     <Label htmlFor="start-date">Tanggal Mulai</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !startDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, 'PPP', { locale: id }) : "Pilih tanggal"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={startDate}
-                          onSelect={setStartDate}
-                          initialFocus
-                          locale={id}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Input
+                      id="start-date"
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={startDateInput}
+                      onChange={(e) => {
+                        const formatted = formatDateInput(e.target.value);
+                        if (formatted.length <= 10) {
+                          setStartDateInput(formatted);
+                          validateAndUpdateDate(formatted, setStartDate);
+                        }
+                      }}
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="end-date">Tanggal Akhir</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !endDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, 'PPP', { locale: id }) : "Pilih tanggal"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={endDate}
-                          onSelect={setEndDate}
-                          initialFocus
-                          locale={id}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Input
+                      id="end-date"
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={endDateInput}
+                      onChange={(e) => {
+                        const formatted = formatDateInput(e.target.value);
+                        if (formatted.length <= 10) {
+                          setEndDateInput(formatted);
+                          validateAndUpdateDate(formatted, setEndDate);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               )}
