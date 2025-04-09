@@ -187,14 +187,14 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
         console.log('History data received:', historyData?.length || 0, 'entries');
         
         if (isMounted) {
-          if (historyData && historyData.length > 0) {
-            console.log('Setting history data to state');
-            setHistory(historyData);
-          } else {
-            console.log('No history data found');
-            setHistory([]);
-          }
-          setLoadingHistory(false);
+        if (historyData && historyData.length > 0) {
+          console.log('Setting history data to state');
+          setHistory(historyData);
+        } else {
+          console.log('No history data found');
+          setHistory([]);
+        }
+        setLoadingHistory(false);
         }
       } catch (error) {
         if (!isMounted) return;
@@ -223,15 +223,15 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
         console.log('Daily progress data received:', progressData?.length || 0, 'entries');
         
         if (isMounted) {
-          if (progressData && progressData.length > 0) {
-            console.log('Setting daily progress data to state');
-            setDailyProgress(progressData);
-          } else {
-            console.log('No daily progress data found');
-            setDailyProgress([]);
-          }
-          
-          setLoadingDailyProgress(false);
+        if (progressData && progressData.length > 0) {
+          console.log('Setting daily progress data to state');
+          setDailyProgress(progressData);
+        } else {
+          console.log('No daily progress data found');
+          setDailyProgress([]);
+        }
+        
+        setLoadingDailyProgress(false);
         }
       } catch (error) {
         if (!isMounted) return;
@@ -490,56 +490,56 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
           <Button 
             variant="destructive" 
             className="w-full sm:w-auto"
-            onClick={handleDelete}
-            disabled={deleting}
-          >
-            {deleting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menghapus...
-              </>
-            ) : (
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Menghapus...
+                    </>
+                  ) : (
               <>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Hapus
               </>
-            )}
+                  )}
           </Button>
         </div>
       </div>
-
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Informasi Batch</CardTitle>
-          </CardHeader>
+              <CardHeader>
+                <CardTitle>Informasi Batch</CardTitle>
+              </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Tanggal Tetas</Label>
                 <p>{format(new Date(batch.hatchDate), 'dd MMMM yyyy', { locale: id })}</p>
-              </div>
+                  </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Jumlah Ayam</Label>
                 <p>{batch.quantity} ekor</p>
-              </div>
+                  </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Berat Rata-rata</Label>
                 <p>{batch.averageWeight} kg</p>
-              </div>
+                    </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Kematian</Label>
                 <p>{batch.deaths} ekor</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
+                    </div>
+                  </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
             <CardTitle>Status Terkini</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+              </CardHeader>
+              <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Status Pakan</Label>
@@ -562,81 +562,81 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
                 <p>{batch.feedType}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
+              </CardContent>
+            </Card>
+          </div>
+        
+          <Card>
         <CardHeader>
-          <CardTitle>Riwayat Perubahan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
+                <CardTitle>Riwayat Perubahan</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Perubahan</TableHead>
                   <TableHead>Nilai Lama</TableHead>
                   <TableHead>Nilai Baru</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {history.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {history.map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell>
                       {format(new Date(entry.timestamp), 'dd MMM yyyy HH:mm', { locale: id })}
-                    </TableCell>
+                          </TableCell>
                     <TableCell>{entry.changeNote}</TableCell>
                     <TableCell>{entry.previous.averageWeight.toFixed(2)} kg</TableCell>
                     <TableCell>{entry.current.averageWeight.toFixed(2)} kg</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+            </CardContent>
+          </Card>
+        
+          <Card>
         <CardHeader>
           <CardTitle>Progress Harian</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
+            </CardHeader>
+            <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Jumlah Ayam</TableHead>
                   <TableHead>Berat Rata-rata</TableHead>
-                  <TableHead>Kematian</TableHead>
+                        <TableHead>Kematian</TableHead>
                   <TableHead>Pakan</TableHead>
                   <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                 {dailyProgress.map((progress) => (
                   <TableRow key={progress.dateString}>
                     <TableCell>
                       {format(new Date(progress.dateString), 'dd MMM yyyy', { locale: id })}
-                    </TableCell>
+                          </TableCell>
                     <TableCell>{progress.quantity || batch.quantity} ekor</TableCell>
                     <TableCell>{progress.averageWeight.toFixed(2)} kg</TableCell>
                     <TableCell>{progress.deaths} ekor</TableCell>
                     <TableCell>{progress.feedAmount.toFixed(2)} kg</TableCell>
-                    <TableCell>
+                          <TableCell>
                       <Badge variant={progress.waterStatus === 'OK' ? 'default' : 'destructive'}>
                         {progress.waterStatus}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+            </CardContent>
+          </Card>
     </div>
   );
 }

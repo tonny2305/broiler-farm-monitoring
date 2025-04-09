@@ -63,8 +63,8 @@ export default function ExportPage() {
   const [dateRange, setDateRange] = useState<string>('last7days');
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
-  const [startDateInput, setStartDateInput] = useState("");
-  const [endDateInput, setEndDateInput] = useState("");
+  const [startDateInput, setStartDateInput] = useState<string>(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
+  const [endDateInput, setEndDateInput] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [selectedBatchId, setSelectedBatchId] = useState<string>('all');
   const [exportType, setExportType] = useState<string>('data');
   const [isExporting, setIsExporting] = useState(false);
@@ -271,10 +271,10 @@ export default function ExportPage() {
   // Format tanggal untuk input
   useEffect(() => {
     if (startDate) {
-      setStartDateInput(format(startDate, "dd/MM/yyyy"));
+      setStartDateInput(format(startDate, "yyyy-MM-dd"));
     }
     if (endDate) {
-      setEndDateInput(format(endDate, "dd/MM/yyyy"));
+      setEndDateInput(format(endDate, "yyyy-MM-dd"));
     }
   }, [startDate, endDate]);
 
@@ -292,7 +292,7 @@ export default function ExportPage() {
   // Fungsi untuk memvalidasi dan mengupdate tanggal
   const validateAndUpdateDate = (dateStr: string, setDate: (date: Date) => void) => {
     if (dateStr.length === 10) {
-      const [day, month, year] = dateStr.split('/');
+      const [day, month, year] = dateStr.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       if (!isNaN(date.getTime())) {
         setDate(date);
@@ -629,13 +629,13 @@ export default function ExportPage() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Card className="w-full">
-        <CardHeader>
+            <CardHeader>
           <CardTitle className="text-2xl font-bold">Export Data</CardTitle>
           <CardDescription>Export data sensor dan ayam dalam berbagai format</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+            </CardHeader>
+            <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+                <div className="space-y-2">
               <Label>Jenis Data</Label>
               <Select value={exportType} onValueChange={setExportType}>
                 <SelectTrigger className="w-full">
@@ -652,113 +652,92 @@ export default function ExportPage() {
               <Label>Format Export</Label>
               <Select value={exportFormat} onValueChange={setExportFormat}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih format" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="json">JSON</SelectItem>
-                  <SelectItem value="csv">CSV</SelectItem>
+                      <SelectValue placeholder="Pilih format" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="csv">CSV</SelectItem>
                   <SelectItem value="excel">Excel</SelectItem>
-                </SelectContent>
-              </Select>
+                    </SelectContent>
+                  </Select>
             </div>
-          </div>
-
+                </div>
+                
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+                <div className="space-y-2">
               <Label>Rentang Tanggal</Label>
               <Select value={dateRange} onValueChange={setDateRange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih rentang tanggal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="last7days">7 Hari Terakhir</SelectItem>
-                  <SelectItem value="last30days">30 Hari Terakhir</SelectItem>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="last7days">7 Hari Terakhir</SelectItem>
+                      <SelectItem value="last30days">30 Hari Terakhir</SelectItem>
                   <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                    </SelectContent>
+                  </Select>
+                </div>
 
             {dateRange === 'custom' && (
-              <div className="space-y-2">
-                <Label>Batch Ayam</Label>
-                <Select value={selectedBatchId} onValueChange={setSelectedBatchId}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih batch ayam" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Batch</SelectItem>
-                    {chickenBatches.map((batch) => (
-                      <SelectItem key={batch.id} value={batch.id}>
-                        {batch.id} - {format(new Date(batch.hatchDate), 'dd MMM yyyy', { locale: id })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate">Tanggal Mulai</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={startDateInput}
+                      onChange={(e) => {
+                        setStartDateInput(e.target.value);
+                        setStartDate(new Date(e.target.value));
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate">Tanggal Selesai</Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={endDateInput}
+                      onChange={(e) => {
+                        setEndDateInput(e.target.value);
+                        setEndDate(new Date(e.target.value));
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                {exportType === 'daily' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="batch">Pilih Batch Ayam</Label>
+                    <Select
+                      value={selectedBatchId}
+                      onValueChange={setSelectedBatchId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih batch ayam" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Batch</SelectItem>
+                        {chickenBatches.map((batch) => (
+                          <SelectItem key={batch.id} value={batch.id}>
+                            Batch {batch.id.slice(-6)} - {format(new Date(batch.hatchDate), 'dd MMM yyyy', { locale: id })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             )}
           </div>
-
-          {dateRange === 'custom' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Tanggal Mulai</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP", { locale: id }) : <span>Pilih tanggal</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tanggal Akhir</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP", { locale: id }) : <span>Pilih tanggal</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          )}
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row gap-2">
-          <Button 
+              <Button 
             className="w-full sm:w-auto" 
-            onClick={() => exportData('sensor')}
-            disabled={isExporting}
+                onClick={() => exportData('sensor')}
+                disabled={isExporting}
           >
             {isExporting ? (
               <>
@@ -766,16 +745,16 @@ export default function ExportPage() {
                 Exporting...
               </>
             ) : (
-              <>
-                <Download className="mr-2 h-4 w-4" />
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
                 Export Data Sensor
-              </>
-            )}
-          </Button>
-          <Button 
+                  </>
+                )}
+              </Button>
+              <Button 
             className="w-full sm:w-auto" 
-            onClick={() => exportData('chicken')}
-            disabled={isExporting}
+                onClick={() => exportData('chicken')}
+                disabled={isExporting}
           >
             {isExporting ? (
               <>
@@ -783,33 +762,33 @@ export default function ExportPage() {
                 Exporting...
               </>
             ) : (
-              <>
-                <Download className="mr-2 h-4 w-4" />
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
                 Export Data Ayam
-              </>
-            )}
-          </Button>
+                  </>
+                )}
+              </Button>
           {exportType === 'daily' && (
-            <Button 
+              <Button 
               className="w-full sm:w-auto" 
-              onClick={() => exportData('daily')}
+                onClick={() => exportData('daily')} 
               disabled={isExporting}
-            >
-              {isExporting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Exporting...
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
                   Export Progress Harian
-                </>
-              )}
-            </Button>
+                  </>
+                )}
+              </Button>
           )}
-        </CardFooter>
-      </Card>
+            </CardFooter>
+          </Card>
     </div>
   );
 } 
