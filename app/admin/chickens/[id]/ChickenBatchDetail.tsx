@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, ChevronLeft, Calendar, Users, Clock, AlertTriangle, FileText, Loader2, History, LineChart } from 'lucide-react';
+import { Edit, Trash2, ChevronLeft, Calendar, Users, Clock, AlertTriangle, FileText, Loader2, History, LineChart, ArrowLeft, Pencil } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { onValue, ref, remove } from 'firebase/database';
@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Label } from '@/components/ui/label';
 
 interface ChickenBatch {
   hatchDate: string;
@@ -464,469 +465,178 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/admin/chickens">
-              <ChevronLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold tracking-tight">Detail Batch #{batchId.slice(-6)}</h1>
+    <div className="container mx-auto p-4 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Detail Batch Ayam</h1>
+          <p className="text-muted-foreground">ID: {batchId}</p>
         </div>
-        
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/admin/chickens/${batchId}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            className="w-full sm:w-auto"
+            onClick={() => router.push('/admin/chickens')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Kembali
           </Button>
-          
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm">
+          <Button 
+            className="w-full sm:w-auto"
+            onClick={() => router.push(`/admin/chickens/${batchId}/edit`)}
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
+          <Button 
+            variant="destructive" 
+            className="w-full sm:w-auto"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Menghapus...
+              </>
+            ) : (
+              <>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Hapus
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Hapus batch ayam?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tindakan ini tidak dapat dibatalkan. Data batch ini akan dihapus secara permanen.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Batal</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={handleDelete}
-                  className="bg-red-500 hover:bg-red-600"
-                  disabled={deleting}
-                >
-                  {deleting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Menghapus...
-                    </>
-                  ) : (
-                    <>Hapus</>
-                  )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              </>
+            )}
+          </Button>
         </div>
       </div>
-      
-      <Tabs defaultValue="info">
-        <TabsList className="grid grid-cols-3 w-[450px]">
-          <TabsTrigger value="info">Informasi</TabsTrigger>
-          <TabsTrigger value="history">Riwayat Perubahan</TabsTrigger>
-          <TabsTrigger value="daily">Perkembangan Harian</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="info">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Informasi Batch</CardTitle>
-                <CardDescription>
-                  Informasi detail mengenai batch ayam ini
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-sm text-muted-foreground">ID Batch</span>
-                    <span className="font-medium">{batchId}</span>
-                  </div>
-                  
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge className={`self-start ${getStatusColor(status)}`} variant="outline">
-                      {getStatusLabel(status)}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-start space-x-2">
-                    <Calendar className="h-5 w-5 text-primary mt-1" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">Tanggal Menetas</span>
-                      <span>{formatDate(batch.hatchDate)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-2">
-                    <Users className="h-5 w-5 text-primary mt-1" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">Jumlah Ayam</span>
-                      <span>{batch.quantity} ekor</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-2">
-                    <Clock className="h-5 w-5 text-primary mt-1" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">Usia</span>
-                      <span>{batch.ageInDays} hari</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-2">
-                    <AlertTriangle className="h-5 w-5 text-primary mt-1" />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">Perkiraan Panen</span>
-                      <span>
-                        {batch.ageInDays >= 35 ? (
-                          <span className="text-red-500">Siap panen sekarang</span>
-                        ) : (
-                          <span>Sekitar {Math.max(0, 35 - batch.ageInDays)} hari lagi</span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
 
-                  {batch.averageWeight !== undefined && (
-                    <div className="flex items-start space-x-2">
-                      <div className="h-5 w-5 text-primary mt-1 flex items-center justify-center">⚖️</div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Berat Rata-rata</span>
-                        <span>{batch.averageWeight} kg</span>
-                      </div>
-                    </div>
-                  )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Informasi Batch</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Tanggal Tetas</Label>
+                <p>{format(new Date(batch.hatchDate), 'dd MMMM yyyy', { locale: id })}</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Jumlah Ayam</Label>
+                <p>{batch.quantity} ekor</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Berat Rata-rata</Label>
+                <p>{batch.averageWeight} kg</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Kematian</Label>
+                <p>{batch.deaths} ekor</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                  {batch.deaths !== undefined && (
-                    <div className="flex items-start space-x-2">
-                      <div className="h-5 w-5 text-primary mt-1 flex items-center justify-center">💀</div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Jumlah Kematian</span>
-                        <span>{batch.deaths} ekor</span>
-                      </div>
-                    </div>
-                  )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Status Terkini</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Status Pakan</Label>
+                <Badge variant={batch.feedType === 'OK' ? 'default' : 'destructive'}>
+                  {batch.feedType}
+                </Badge>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Status Air</Label>
+                <Badge variant={batch.waterStatus === 'OK' ? 'default' : 'destructive'}>
+                  {batch.waterStatus}
+                </Badge>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Jumlah Pakan</Label>
+                <p>{batch.feedAmount} kg</p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground">Jenis Pakan</Label>
+                <p>{batch.feedType}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-                  {batch.feedAmount !== undefined && (
-                    <div className="flex items-start space-x-2">
-                      <div className="h-5 w-5 text-primary mt-1 flex items-center justify-center">🌾</div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Jumlah Pakan</span>
-                        <span>{batch.feedAmount} kg</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {batch.feedType && (
-                    <div className="flex items-start space-x-2">
-                      <div className="h-5 w-5 text-primary mt-1 flex items-center justify-center">🥫</div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Jenis Pakan</span>
-                        <span>{batch.feedType}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {batch.waterStatus && (
-                    <div className="flex items-start space-x-2">
-                      <div className="h-5 w-5 text-primary mt-1 flex items-center justify-center">💧</div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Status Air</span>
-                        <Badge variant="outline" className={batch.waterStatus === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                          {batch.waterStatus}
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {batch.notes && (
-                  <div className="pt-4 border-t">
-                    <div className="flex items-start space-x-2">
-                      <FileText className="h-5 w-5 text-primary mt-1" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">Catatan</span>
-                        <p className="mt-1 whitespace-pre-wrap">{batch.notes}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {batch.lastUpdated && (
-                  <div className="pt-4 border-t text-sm text-muted-foreground">
-                    <p>Terakhir diperbarui: {formatTimestamp(batch.lastUpdated)}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Aksi</CardTitle>
-                <CardDescription>
-                  Tindakan lanjutan untuk batch ini
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button className="w-full" asChild>
-                  <Link href={`/admin/export?batch=${batchId}`}>
-                    Ekspor Data Batch
-                  </Link>
-                </Button>
-                
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/admin/chickens/${batchId}/edit`}>
-                    Edit Informasi
-                  </Link>
-                </Button>
-                
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="w-full">
-                      Hapus Batch
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Hapus batch ayam?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tindakan ini tidak dapat dibatalkan. Data batch ini akan dihapus secara permanen.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Batal</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDelete}
-                        className="bg-red-500 hover:bg-red-600"
-                        disabled={deleting}
-                      >
-                        {deleting ? 'Menghapus...' : 'Hapus'}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardContent>
-            </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Riwayat Perubahan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Perubahan</TableHead>
+                  <TableHead>Nilai Lama</TableHead>
+                  <TableHead>Nilai Baru</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {history.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell>
+                      {format(new Date(entry.timestamp), 'dd MMM yyyy HH:mm', { locale: id })}
+                    </TableCell>
+                    <TableCell>{entry.changeNote}</TableCell>
+                    <TableCell>{entry.previous.averageWeight.toFixed(2)} kg</TableCell>
+                    <TableCell>{entry.current.averageWeight.toFixed(2)} kg</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="history">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Riwayat Perubahan</CardTitle>
-                <CardDescription>
-                  Catatan perubahan data monitoring ayam
-                </CardDescription>
-              </div>
-              <History className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {loadingHistory ? (
-                <div className="flex justify-center items-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <History className="h-12 w-12 text-muted-foreground mb-2 opacity-20" />
-                  <p className="text-muted-foreground">Belum ada catatan perubahan untuk batch ini</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[180px]">Tanggal</TableHead>
-                        <TableHead>Berat (kg)</TableHead>
-                        <TableHead>Kematian</TableHead>
-                        <TableHead>Jumlah Ayam</TableHead>
-                        <TableHead>Pakan (kg)</TableHead>
-                        <TableHead>Jenis Pakan</TableHead>
-                        <TableHead>Air</TableHead>
-                        <TableHead className="text-right">Catatan</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {history.map((entry) => (
-                        <TableRow key={entry.id}>
-                          <TableCell className="font-medium">{formatTimestamp(entry.timestamp)}</TableCell>
-                          <TableCell>
-                            {entry.current.averageWeight.toFixed(2)} 
-                            {' '}
-                            {formatChangeValue(entry.previous.averageWeight, entry.current.averageWeight)}
-                          </TableCell>
-                          <TableCell>
-                            {entry.current.deaths} 
-                            {' '}
-                            {formatChangeValue(entry.previous.deaths, entry.current.deaths)}
-                          </TableCell>
-                          <TableCell>
-                            {entry.current.quantity || batch.quantity} 
-                            {' '}
-                            {entry.current.quantity !== undefined && entry.previous.quantity !== undefined && 
-                              formatChangeValue(entry.previous.quantity, entry.current.quantity)}
-                          </TableCell>
-                          <TableCell>
-                            {entry.current.feedAmount.toFixed(2)} 
-                            {' '}
-                            {formatChangeValue(entry.previous.feedAmount, entry.current.feedAmount)}
-                          </TableCell>
-                          <TableCell>
-                            {entry.current.feedType || '-'}
-                            {entry.previous.feedType !== entry.current.feedType && (
-                              <span className="text-xs text-blue-600 block">
-                                (sebelumnya: {entry.previous.feedType || '-'})
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={entry.current.waterStatus === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                              {entry.current.waterStatus}
-                            </Badge>
-                            {entry.previous.waterStatus !== entry.current.waterStatus && (
-                              <span className="text-xs text-blue-600 block">
-                                Perubahan status
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right whitespace-pre-wrap max-w-[200px]">
-                            {entry.changeNote || '-'}
-                            {entry.previous.notes !== entry.current.notes && (
-                              <span className="text-xs text-blue-600 block mt-1">
-                                Catatan diperbarui
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="daily">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Perkembangan Harian Batch Ayam</CardTitle>
-                <CardDescription>
-                  Rekaman perkembangan harian batch ayam ini sejak tanggal penetasan ({formatDate(batch.hatchDate)})
-                </CardDescription>
-              </div>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleUpdateToday}
-                  disabled={updatingDaily}
-                >
-                  {updatingDaily ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Memperbarui...
-                    </>
-                  ) : (
-                    <>Update Hari Ini</>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleBackfill}
-                  disabled={backfilling}
-                >
-                  {backfilling ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Proses...
-                    </>
-                  ) : (
-                    <>Perbarui Semua Data</>
-                  )}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {loadingDailyProgress ? (
-                <div className="flex justify-center items-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : dailyProgress.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <LineChart className="h-12 w-12 text-muted-foreground mb-2 opacity-20" />
-                  <p className="text-muted-foreground">Belum ada data perkembangan harian</p>
-                  <Button 
-                    className="mt-4" 
-                    variant="outline" 
-                    onClick={handleUpdateToday}
-                    disabled={updatingDaily}
-                  >
-                    {updatingDaily ? 'Memperbarui...' : 'Buat Data Hari Ini'}
-                  </Button>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[120px]">Tanggal</TableHead>
-                        <TableHead>Usia (hari)</TableHead>
-                        <TableHead>Berat (kg)</TableHead>
-                        <TableHead>Kematian</TableHead>
-                        <TableHead>Jumlah Ayam</TableHead>
-                        <TableHead>Pakan (kg)</TableHead>
-                        <TableHead>Jenis Pakan</TableHead>
-                        <TableHead>Air</TableHead>
-                        <TableHead className="text-right">Catatan</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dailyProgress.map((entry) => (
-                        <TableRow key={entry.dateString}>
-                          <TableCell className="font-medium">
-                            {new Date(entry.dateString).toLocaleDateString('id-ID', { 
-                              day: 'numeric', 
-                              month: 'short', 
-                              year: 'numeric' 
-                            })}
-                            {entry.manualUpdate && (
-                              <span className="text-xs text-blue-600 block">
-                                Manual
-                              </span>
-                            )}
-                            {entry.autoBackfilled && (
-                              <span className="text-xs text-gray-500 block">
-                                Auto
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>{entry.ageInDays}</TableCell>
-                          <TableCell>{entry.averageWeight.toFixed(2)} kg</TableCell>
-                          <TableCell>{entry.deaths} ekor</TableCell>
-                          <TableCell>{entry.quantity || batch.quantity} ekor</TableCell>
-                          <TableCell>{entry.feedAmount.toFixed(2)} kg</TableCell>
-                          <TableCell>{entry.feedType || '-'}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={entry.waterStatus === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                              {entry.waterStatus}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right whitespace-pre-wrap max-w-[200px]">
-                            {entry.notes || '-'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Progress Harian</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Jumlah Ayam</TableHead>
+                  <TableHead>Berat Rata-rata</TableHead>
+                  <TableHead>Kematian</TableHead>
+                  <TableHead>Pakan</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dailyProgress.map((progress) => (
+                  <TableRow key={progress.dateString}>
+                    <TableCell>
+                      {format(new Date(progress.dateString), 'dd MMM yyyy', { locale: id })}
+                    </TableCell>
+                    <TableCell>{progress.quantity || batch.quantity} ekor</TableCell>
+                    <TableCell>{progress.averageWeight.toFixed(2)} kg</TableCell>
+                    <TableCell>{progress.deaths} ekor</TableCell>
+                    <TableCell>{progress.feedAmount.toFixed(2)} kg</TableCell>
+                    <TableCell>
+                      <Badge variant={progress.waterStatus === 'OK' ? 'default' : 'destructive'}>
+                        {progress.waterStatus}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
