@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { initializeApp, getApps } from 'firebase/app';
 import { getDatabase, ref, DatabaseReference, set, push, get } from 'firebase/database';
 import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, User, onAuthStateChanged } from 'firebase/auth';
