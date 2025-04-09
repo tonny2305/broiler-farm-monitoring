@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from "@/components/ui/progress"
 import { onValue, get } from 'firebase/database';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { MoonIcon, SunIcon, AlertTriangleIcon, UserCogIcon, CalendarDaysIcon, LogOutIcon } from 'lucide-react';
+import { MoonIcon, SunIcon, AlertTriangleIcon, UserCogIcon, CalendarDaysIcon, LogOutIcon, LayoutDashboardIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { getSensorDataRef, getChickenDataRef } from '@/lib/firebase';
 import Link from 'next/link';
@@ -746,14 +746,26 @@ export default function DashboardPage() {
               </Link>
             </Button>
           ) : (
-            <Button 
-              variant="default" 
-              className="bg-red-500/80 hover:bg-red-500/100 text-white transition-all duration-300"
-              onClick={handleLogout}
-            >
-              <LogOutIcon className="h-5 w-5 mr-2" />
-              <span className="inline sm:inline">Logout</span>
-            </Button>
+            <>
+              <Button 
+                variant="default" 
+                className="bg-white/20 hover:bg-white/30 text-white transition-all duration-300"
+                asChild
+              >
+                <Link href="/admin/dashboard" className="flex items-center">
+                  <LayoutDashboardIcon className="h-5 w-5 mr-2" />
+                  <span className="inline sm:inline">Dashboard</span>
+                </Link>
+              </Button>
+              <Button 
+                variant="default" 
+                className="bg-red-500/80 hover:bg-red-500/100 text-white transition-all duration-300"
+                onClick={handleLogout}
+              >
+                <LogOutIcon className="h-5 w-5 mr-2" />
+                <span className="inline sm:inline">Logout</span>
+              </Button>
+            </>
           )}
           <Button 
             variant="default" 

@@ -15,7 +15,7 @@ import { format, subDays } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { onValue, get, ref as dbRef } from 'firebase/database';
-import { getSensorDataRef, getChickenDataRef, getFirebaseDatabase } from '@/lib/firebase';
+import { getSensorDataRef, getChickenDataRef, getFirebaseDatabase, getDailyChickenProgress } from '@/lib/firebase';
 import { useToast } from '@/components/ui/use-toast';
 
 interface SensorData {
@@ -37,11 +37,28 @@ interface ChickenBatch {
   ageInDays: number;
 }
 
+interface DailyProgressEntry {
+  dateString: string;
+  timestamp: number;
+  ageInDays: number;
+  averageWeight: number;
+  deaths: number;
+  feedAmount: number;
+  feedType: string;
+  waterStatus: string;
+  notes: string;
+  manualUpdate: boolean;
+  autoBackfilled?: boolean;
+  quantity?: number;
+}
+
 export default function ExportPage() {
   const { toast } = useToast();
   const [sensorData, setSensorData] = useState<SensorData[]>([]);
   const [chickenBatches, setChickenBatches] = useState<ChickenBatch[]>([]);
+  const [dailyProgress, setDailyProgress] = useState<Record<string, DailyProgressEntry[]>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingDaily, setLoadingDaily] = useState(false);
   const [exportFormat, setExportFormat] = useState<string>('json');
   const [dateRange, setDateRange] = useState<string>('last7days');
   const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
@@ -49,6 +66,7 @@ export default function ExportPage() {
   const [startDateInput, setStartDateInput] = useState("");
   const [endDateInput, setEndDateInput] = useState("");
   const [selectedBatchId, setSelectedBatchId] = useState<string>('all');
+  const [exportType, setExportType] = useState<string>('data');
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
@@ -282,14 +300,47 @@ export default function ExportPage() {
     }
   };
 
+  // Fungsi untuk mengambil data harian batch ayam
+  const fetchDailyProgress = async (batchId: string) => {
+    try {
+      setLoadingDaily(true);
+      console.log('Fetching daily progress for batch:', batchId);
+      
+      const progressData = await getDailyChickenProgress(batchId);
+      console.log('Daily progress data received:', progressData?.length || 0, 'entries');
+      
+      return progressData || [];
+    } catch (error) {
+      console.error('Error fetching daily progress:', error);
+      return [];
+    } finally {
+      setLoadingDaily(false);
+    }
+  };
+
+  // Memperbarui useEffect untuk mengambil batch data dan juga mengambil data harian
+  useEffect(() => {
+    // ... existing code ...
+
+    // Tambahkan efek untuk mengambil data harian ketika batch dipilih
+    if (selectedBatchId && selectedBatchId !== 'all') {
+      fetchDailyProgress(selectedBatchId).then(data => {
+        setDailyProgress({
+          ...dailyProgress,
+          [selectedBatchId]: data
+        });
+      });
+    }
+  }, [selectedBatchId]);
+
   // Fungsi untuk mengekspor data
-  const exportData = (type: 'sensor' | 'chicken') => {
+  const exportData = (type: 'sensor' | 'chicken' | 'daily') => {
     try {
       setIsExporting(true);
-      console.log(`Memulai ekspor data ${type}`, { sensorData, chickenBatches });
+      console.log(`Memulai ekspor data ${type}`, { sensorData, chickenBatches, dailyProgress });
       
       // 1. Siapkan data yang akan diekspor
-      let exportData: any[] = [];
+      let dataToExport: any[] = [];
       let filename = '';
       
       if (type === 'sensor') {
@@ -319,7 +370,7 @@ export default function ExportPage() {
         }
         
         // Format data untuk ekspor tanpa filter (sementara untuk testing)
-        const dataToExport = sensorData;
+        dataToExport = sensorData;
         console.log("Data untuk ekspor:", dataToExport.length, "entri");
         
         // Format data untuk ekspor
@@ -351,7 +402,7 @@ export default function ExportPage() {
             }
             
             // Tambahkan entri yang sudah diformat ke data ekspor
-            exportData.push({
+            dataToExport.push({
               waktu: formattedTime,
               suhu: entry.temperature.toFixed(1),
               kelembaban: entry.humidity.toFixed(1),
@@ -368,7 +419,7 @@ export default function ExportPage() {
         
         // Buat nama file untuk data sensor
         filename = `data_sensor_${format(startDate, 'yyyyMMdd')}_${format(endDate, 'yyyyMMdd')}`;
-      } else {
+      } else if (type === 'chicken') {
         // Ekspor data ayam
         if (chickenBatches.length === 0) {
           toast({
@@ -385,7 +436,7 @@ export default function ExportPage() {
           : chickenBatches.filter(b => b.id === selectedBatchId);
         
         // Format data ayam untuk ekspor
-        exportData = batchesToExport.map(b => ({
+        dataToExport = batchesToExport.map(b => ({
           id: b.id,
           tanggal_menetas: format(new Date(b.hatchDate), 'dd/MM/yyyy'),
           jumlah: b.quantity,
@@ -395,10 +446,74 @@ export default function ExportPage() {
         
         // Buat nama file untuk data ayam
         filename = `data_ayam_${format(new Date(), 'yyyyMMdd')}`;
+      } else if (type === 'daily') {
+        // Ekspor data perkembangan harian ayam
+        if (selectedBatchId === 'all') {
+          toast({
+            variant: "destructive",
+            title: "Ekspor Gagal",
+            description: "Pilih batch ayam tertentu untuk mengekspor data perkembangan harian"
+          });
+          setIsExporting(false);
+          return;
+        }
+        
+        const batchInfo = chickenBatches.find(b => b.id === selectedBatchId);
+        const batchDailyData = dailyProgress[selectedBatchId];
+        
+        if (!batchDailyData || batchDailyData.length === 0) {
+          // Jika data belum diambil, ambil dulu
+          toast({
+            title: "Mengambil Data",
+            description: "Sedang mengambil data perkembangan harian..."
+          });
+          
+          fetchDailyProgress(selectedBatchId).then(data => {
+            if (data && data.length > 0) {
+              setDailyProgress({
+                ...dailyProgress,
+                [selectedBatchId]: data
+              });
+              
+              // Ulangi ekspor setelah data diambil
+              setTimeout(() => exportData('daily'), 500);
+            } else {
+              toast({
+                variant: "destructive",
+                title: "Ekspor Gagal",
+                description: "Tidak ada data perkembangan harian untuk batch ini"
+              });
+            }
+          });
+          
+          setIsExporting(false);
+          return;
+        }
+        
+        // Format data perkembangan harian untuk ekspor
+        dataToExport = batchDailyData.map(entry => ({
+          tanggal: entry.dateString,
+          usia_hari: entry.ageInDays,
+          berat_rata_rata_kg: entry.averageWeight.toFixed(2),
+          kematian: entry.deaths,
+          jumlah_ayam: entry.quantity || (batchInfo ? batchInfo.quantity : 0),
+          jumlah_pakan_kg: entry.feedAmount.toFixed(2),
+          jenis_pakan: entry.feedType || '-',
+          status_air: entry.waterStatus,
+          catatan: entry.notes || '-',
+          jenis_update: entry.manualUpdate ? 'Manual' : (entry.autoBackfilled ? 'Auto Backfill' : 'Auto')
+        }));
+        
+        // Urutkan berdasarkan tanggal (terlama ke terbaru)
+        dataToExport.sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime());
+        
+        // Nama file untuk data perkembangan harian
+        const batchName = batchInfo ? batchInfo.id.split('-').pop() : selectedBatchId;
+        filename = `perkembangan_harian_batch_${batchName}_${format(new Date(), 'yyyyMMdd')}`;
       }
       
       // Cek apakah ada data yang akan diekspor
-      if (exportData.length === 0) {
+      if (dataToExport.length === 0) {
         toast({
           variant: "destructive",
           title: "Ekspor Gagal",
@@ -408,19 +523,19 @@ export default function ExportPage() {
         return;
       }
       
-      console.log(`Mengekspor ${exportData.length} entri data ke ${filename}`);
+      console.log(`Mengekspor ${dataToExport.length} entri data ke ${filename}`);
       
       // 2. Konversi data ke format yang dipilih
       let content = '';
       
       if (exportFormat === 'json') {
         // Format JSON
-        content = JSON.stringify(exportData, null, 2);
+        content = JSON.stringify(dataToExport, null, 2);
         filename += '.json';
       } else {
         // Format CSV
         // Buat header CSV dengan satuan (hanya di header)
-        const baseHeaders = Object.keys(exportData[0]);
+        const baseHeaders = Object.keys(dataToExport[0]);
         const headersWithUnits = [...baseHeaders];
         
         // Tambahkan satuan pada header jika diperlukan
@@ -431,12 +546,33 @@ export default function ExportPage() {
           headersWithUnits[4] = 'metana (ppm)';
           headersWithUnits[5] = 'h2s (ppm)';
           headersWithUnits[6] = 'intensitas (lux)';
+        } else if (type === 'daily') {
+          // Tambahkan satuan untuk data perkembangan harian
+          const headerMap: Record<string, string> = {
+            tanggal: 'tanggal',
+            usia_hari: 'usia (hari)',
+            berat_rata_rata_kg: 'berat rata-rata (kg)',
+            kematian: 'kematian (ekor)',
+            jumlah_ayam: 'jumlah ayam',
+            jumlah_pakan_kg: 'jumlah pakan (kg)',
+            jenis_pakan: 'jenis pakan',
+            status_air: 'status air',
+            catatan: 'catatan',
+            jenis_update: 'jenis update'
+          };
+          
+          // Ganti header dengan label yang lebih baik
+          baseHeaders.forEach((header, index) => {
+            if (headerMap[header]) {
+              headersWithUnits[index] = headerMap[header];
+            }
+          });
         }
         
         // Buat baris-baris CSV
         const rows = [
           headersWithUnits.join(','),
-          ...exportData.map(item => 
+          ...dataToExport.map(item => 
             baseHeaders.map(header => {
               const value = String(item[header] || '');
               // Escape nilai yang mengandung koma
@@ -453,85 +589,57 @@ export default function ExportPage() {
       console.log("Content preview:", content.substring(0, 100) + "...");
       console.log("Content length:", content.length);
       
-      // 3. Unduh file dengan metode alternatif
-      try {
-        // Metode 1: Menggunakan Blob API
-        const blob = new Blob([content], { 
-          type: exportFormat === 'json' ? 'application/json' : 'text/csv;charset=utf-8' 
+      // 3. Unduh file dengan Blob API
+      const blob = new Blob([content], { 
+        type: exportFormat === 'json' ? 'application/json' : 'text/csv;charset=utf-8' 
+      });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Bersihkan
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Tampilkan pesan sukses
+        toast({
+          title: "Ekspor Berhasil",
+          description: `Data berhasil diekspor ke ${filename}`
         });
         
-        // Untuk browser modern (hapus kode untuk IE yang menyebabkan linter error)
-        const url = URL.createObjectURL(blob);
-        console.log("Blob URL created:", url);
-        
-        // Buat elemen <a> untuk unduhan
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.style.display = 'none';
-        
-        // Tambahkan ke dokumen, klik, dan hapus
-        document.body.appendChild(a);
-        console.log("Link element appended to body");
-        
-        // Tambahkan delay kecil sebelum klik untuk browser tertentu
-        setTimeout(() => {
-          console.log("Clicking download link");
-          a.click();
-          
-          // Bersihkan
-          setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            console.log("Cleanup completed");
-          }, 500);
-        }, 100);
-      } catch (downloadError) {
-        console.error("Error saat download dengan metode 1:", downloadError);
-        
-        // Metode 2: Gunakan data URI sebagai fallback
-        try {
-          const dataUri = `data:${exportFormat === 'json' ? 'application/json' : 'text/csv'};charset=utf-8,${encodeURIComponent(content)}`;
-          const a = document.createElement('a');
-          a.href = dataUri;
-          a.download = filename;
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        } catch (fallbackError) {
-          console.error("Error saat download dengan metode 2:", fallbackError);
-          throw new Error("Gagal mengunduh file dengan kedua metode");
-        }
-      }
+        setIsExporting(false);
+      }, 100);
       
-      toast({
-        title: "Ekspor Berhasil",
-        description: `Data berhasil diekspor ke file ${filename}`
-      });
     } catch (error) {
-      console.error('Error saat mengekspor data:', error);
+      console.error('Error saat ekspor data:', error);
       toast({
         variant: "destructive",
         title: "Ekspor Gagal",
-        description: "Terjadi kesalahan saat mengekspor data: " + (error instanceof Error ? error.message : String(error))
+        description: "Terjadi kesalahan saat mengekspor data"
       });
-    } finally {
       setIsExporting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Ekspor Data</h1>
+    <div className="container mx-auto py-10 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Ekspor Data</h1>
+      </div>
       
-      <Tabs defaultValue="sensor">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="sensor" onValueChange={(value) => setExportType(value)}>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="sensor">Data Sensor</TabsTrigger>
-          <TabsTrigger value="chickens">Data Ayam</TabsTrigger>
+          <TabsTrigger value="chicken">Data Batch Ayam</TabsTrigger>
+          <TabsTrigger value="daily">Perkembangan Harian</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="sensor" className="mt-4 space-y-4">
+        <TabsContent value="sensor">
           <Card>
             <CardHeader>
               <CardTitle>Ekspor Data Sensor</CardTitle>
@@ -634,7 +742,7 @@ export default function ExportPage() {
           </Card>
         </TabsContent>
         
-        <TabsContent value="chickens" className="mt-4 space-y-4">
+        <TabsContent value="chicken">
           <Card>
             <CardHeader>
               <CardTitle>Ekspor Data Ayam</CardTitle>
@@ -693,6 +801,90 @@ export default function ExportPage() {
                   <>
                     <Download className="mr-2 h-4 w-4" />
                     Ekspor Data Ayam
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="daily">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ekspor Data Perkembangan Harian</CardTitle>
+              <CardDescription>
+                Download data perkembangan harian batch ayam lengkap
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="daily-batch">Pilih Batch Ayam</Label>
+                    <Select 
+                      value={selectedBatchId} 
+                      onValueChange={setSelectedBatchId}
+                    >
+                      <SelectTrigger id="daily-batch">
+                        <SelectValue placeholder="Pilih batch ayam" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chickenBatches.map((batch) => (
+                          <SelectItem key={batch.id} value={batch.id}>
+                            {batch.id} - {format(new Date(batch.hatchDate), 'dd/MM/yyyy')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="daily-format">Format File</Label>
+                    <Select 
+                      value={exportFormat} 
+                      onValueChange={setExportFormat}
+                    >
+                      <SelectTrigger id="daily-format">
+                        <SelectValue placeholder="Pilih format file" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="csv">CSV</SelectItem>
+                        <SelectItem value="json">JSON</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="bg-muted/50 p-4 rounded-md">
+                  <h3 className="font-medium mb-2">Informasi Ekspor</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Data perkembangan harian mencakup berat rata-rata, kematian, pakan, dan parameter lainnya yang tercatat untuk setiap hari sejak batch ditetaskan.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <div>
+                {loadingDaily && (
+                  <div className="flex items-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Memuat data...</span>
+                  </div>
+                )}
+              </div>
+              <Button 
+                onClick={() => exportData('daily')} 
+                disabled={isExporting || !selectedBatchId || selectedBatchId === 'all'}
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Memproses...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Data
                   </>
                 )}
               </Button>

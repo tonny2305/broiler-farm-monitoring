@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, ChevronRight, Activity, Thermometer, Droplets, AlertCircle, Flame, Cloud, Sun } from 'lucide-react';
+import { CalendarDays, ChevronRight, Activity, Thermometer, Droplets, AlertCircle, Flame, Cloud, Sun, Home } from 'lucide-react';
 import Link from 'next/link';
 import { onValue, get, ref as dbRef } from 'firebase/database';
 import { getSensorDataRef, getChickenDataRef, getFirebaseDatabase } from '@/lib/firebase';
@@ -184,11 +184,19 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard Admin</h1>
-        <Button asChild>
-          <Link href="/admin/chickens/add">
-            Tambah Batch Ayam Baru
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/" className="flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              <span>Halaman Utama</span>
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/chickens/add">
+              Tambah Batch Ayam Baru
+            </Link>
+          </Button>
+        </div>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

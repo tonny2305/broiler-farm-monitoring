@@ -27,6 +27,12 @@ interface ChickenBatch {
   notes?: string;
   createdAt: number;
   ageInDays: number;
+  averageWeight?: number;
+  deaths?: number;
+  feedAmount?: number;
+  feedType?: string;
+  waterStatus?: 'OK' | 'NOT OK';
+  lastUpdated?: number;
 }
 
 export default function ChickensPage() {
@@ -37,10 +43,16 @@ export default function ChickensPage() {
 
   useEffect(() => {
     const chickenRef = getChickenDataRef();
+    console.log("ChickensPage: Getting chicken data reference");
+    
     const unsubscribe = onValue(chickenRef, (snapshot) => {
       const data = snapshot.val();
+      console.log("ChickensPage: Received data from Firebase:", data);
+      
       if (data) {
         const batches: ChickenBatch[] = [];
+        console.log("ChickensPage: Processing", Object.keys(data).length, "batches");
+        
         Object.keys(data).forEach(key => {
           const batch = data[key];
           const hatchDate = new Date(batch.hatchDate);
@@ -53,16 +65,27 @@ export default function ChickensPage() {
             quantity: batch.quantity,
             notes: batch.notes,
             createdAt: batch.createdAt || 0,
-            ageInDays
+            ageInDays,
+            averageWeight: batch.averageWeight,
+            deaths: batch.deaths,
+            feedAmount: batch.feedAmount,
+            feedType: batch.feedType,
+            waterStatus: batch.waterStatus,
+            lastUpdated: batch.lastUpdated
           });
         });
         
         // Urutkan berdasarkan tanggal menetas (terbaru di atas)
         batches.sort((a, b) => new Date(b.hatchDate).getTime() - new Date(a.hatchDate).getTime());
+        console.log("ChickensPage: Sorted batches:", batches);
         setChickenBatches(batches);
       } else {
+        console.log("ChickensPage: No data found in Firebase");
         setChickenBatches([]);
       }
+      setLoading(false);
+    }, (error) => {
+      console.error("ChickensPage: Error fetching data:", error);
       setLoading(false);
     });
     
@@ -186,6 +209,10 @@ export default function ChickensPage() {
                     <TableHead>Tanggal Menetas</TableHead>
                     <TableHead>Jumlah Ayam</TableHead>
                     <TableHead>Usia</TableHead>
+                    <TableHead>Berat (kg)</TableHead>
+                    <TableHead>Kematian</TableHead>
+                    <TableHead>Pakan</TableHead>
+                    <TableHead>Status Air</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
@@ -203,6 +230,19 @@ export default function ChickensPage() {
                         <TableCell>{formatDate(batch.hatchDate)}</TableCell>
                         <TableCell>{batch.quantity} ekor</TableCell>
                         <TableCell>{batch.ageInDays} hari</TableCell>
+                        <TableCell>{batch.averageWeight ? `${batch.averageWeight} kg` : '-'}</TableCell>
+                        <TableCell>{batch.deaths ? `${batch.deaths} ekor` : '-'}</TableCell>
+                        <TableCell>
+                          {batch.feedAmount ? `${batch.feedAmount} kg (${batch.feedType || '-'})` : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            className={batch.waterStatus === 'OK' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} 
+                            variant="outline"
+                          >
+                            {batch.waterStatus || '-'}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(status)} variant="outline">
                             {getStatusLabel(status)}
@@ -210,17 +250,13 @@ export default function ChickensPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
-                            <Button variant="ghost" size="icon" asChild>
+                            <Button variant="outline" size="icon" asChild>
                               <Link href={`/admin/chickens/${batch.id}/edit`}>
                                 <Edit className="h-4 w-4" />
                               </Link>
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => openDeleteDialog(batch.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
+                            <Button variant="outline" size="icon" onClick={() => openDeleteDialog(batch.id)}>
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>

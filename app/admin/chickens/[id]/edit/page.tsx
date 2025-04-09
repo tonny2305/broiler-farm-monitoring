@@ -1,9 +1,14 @@
 import { Suspense } from 'react';
 import EditChickenBatchForm from './EditChickenBatchForm';
+import Loading from '@/app/loading';
 
-export default function Page({ params }: { params: { id: string } }) {
-    return (
-    <Suspense fallback={<div>Loading...</div>}>
+export default async function EditChickenBatchPage({
+  params
+}: {
+  params: { id: string }
+}) {
+  return (
+    <Suspense fallback={<Loading />}>
       <EditChickenBatchForm id={params.id} />
     </Suspense>
   );
