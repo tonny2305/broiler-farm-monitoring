@@ -451,6 +451,7 @@ export const backfillDailyProgress = async (batchId: string) => {
     }
     
     // Loop dari tanggal menetas hingga hari ini
+    // eslint-disable-next-line prefer-const
     let currentDate = new Date(hatchDate);
     currentDate.setHours(0, 0, 0, 0);
     
@@ -598,6 +599,8 @@ export const checkAndBackfillMissingDays = async (batchId: string, days: number 
     const startDate = new Date(hatchDate);
     startDate.setHours(0, 0, 0, 0);
     
+    // Loop dari tanggal menetas hingga hari ini
+    // eslint-disable-next-line prefer-const
     let currentDate = new Date(startDate);
     
     const endDate = new Date(today);
