@@ -595,7 +595,7 @@ export const checkAndBackfillMissingDays = async (batchId: string, days: number 
     
     // PENTING: Mulai dari tanggal penetasan, bukan dari hari ini mundur beberapa hari
     // Ini mencegah data harian muncul sebelum tanggal penetasan
-    let startDate = new Date(hatchDate);
+    const startDate = new Date(hatchDate);
     startDate.setHours(0, 0, 0, 0);
     
     let currentDate = new Date(startDate);
