@@ -99,17 +99,19 @@ export const registerAdmin = async (email: string, password: string, displayName
 };
 
 // Fungsi untuk menghasilkan ID batch yang terformat
-const generateBatchId = async () => {
+const generateBatchId = async (hatchDate: string) => {
   try {
-    console.log("Generating new batch ID...");
-    const today = new Date();
-    const dateStr = today.getFullYear().toString() +
-      (today.getMonth() + 1).toString().padStart(2, '0') +
-      today.getDate().toString().padStart(2, '0');
+    console.log("Generating new batch ID for hatch date:", hatchDate);
+    
+    // Parse tanggal menetas
+    const hatchDateObj = new Date(hatchDate);
+    const dateStr = hatchDateObj.getFullYear().toString() +
+      (hatchDateObj.getMonth() + 1).toString().padStart(2, '0') +
+      hatchDateObj.getDate().toString().padStart(2, '0');
     
     console.log("Date string for batch ID:", dateStr);
     
-    // Dapatkan referensi untuk data ayam hari ini
+    // Dapatkan referensi untuk data ayam
     const database = getFirebaseDatabase();
     const chickenDataRef = ref(database, 'chicken_data');
     const snapshot = await get(chickenDataRef);
@@ -117,15 +119,15 @@ const generateBatchId = async () => {
     
     console.log("Found existing chicken data:", Object.keys(data).length, "batches");
     
-    // Filter batch yang dibuat hari ini
-    const todayBatches = Object.keys(data).filter(key => 
+    // Filter batch yang menetas pada tanggal yang sama
+    const sameDayBatches = Object.keys(data).filter(key => 
       key.includes(`BTH-${dateStr}`)
     );
     
-    console.log("Today's batches:", todayBatches);
+    console.log("Batches with same hatch date:", sameDayBatches);
     
     // Tentukan nomor urut berikutnya
-    const nextNumber = (todayBatches.length + 1).toString().padStart(3, '0');
+    const nextNumber = (sameDayBatches.length + 1).toString().padStart(3, '0');
     
     // Format: BTH-YYYYMMDD-001
     const newBatchId = `BTH-${dateStr}-${nextNumber}`;
@@ -158,7 +160,7 @@ export const addChickenBatch = async (batchData: {
     const chickenRef = getChickenDataRef();
     console.log("Got chicken reference");
     
-    const batchId = await generateBatchId();
+    const batchId = await generateBatchId(batchData.hatchDate);
     console.log("Generated batch ID:", batchId);
     
     const batchRef = ref(getFirebaseDatabase(), `chicken_data/${batchId}`);

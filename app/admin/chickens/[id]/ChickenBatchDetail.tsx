@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, ChevronLeft, Calendar, Users, Clock, AlertTriangle, FileText, Loader2, History, LineChart, ArrowLeft, Pencil } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { onValue, ref, remove } from 'firebase/database';
+import { onValue, ref, remove, get, update } from 'firebase/database';
 import { 
   getFirebaseDatabase, 
   getChickenHistory, 
@@ -88,6 +88,30 @@ interface DailyProgressEntry {
   autoBackfilled?: boolean;
 }
 
+interface ChangeHistory {
+  id: string;
+  timestamp: number;
+  previous: {
+    averageWeight: number;
+    deaths: number;
+    feedAmount: number;
+    feedType: string;
+    waterStatus: string;
+    notes?: string;
+    quantity?: number;
+  };
+  current: {
+    averageWeight: number;
+    deaths: number;
+    feedAmount: number;
+    feedType: string;
+    waterStatus: string;
+    notes?: string;
+    quantity?: number;
+  };
+  changeNote: string;
+}
+
 export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -105,6 +129,7 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
   const [backfilling, setBackfilling] = useState<boolean>(false);
   const [updatingDaily, setUpdatingDaily] = useState<boolean>(false);
   const [redirecting, setRedirecting] = useState<boolean>(false);
+  const [changeHistory, setChangeHistory] = useState<ChangeHistory[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -242,9 +267,39 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
       }
     };
     
+    const fetchChangeHistory = async () => {
+      try {
+        const database = getFirebaseDatabase();
+        const changeHistoryRef = ref(database, 'change_history');
+        
+        onValue(changeHistoryRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            // Filter riwayat perubahan hanya untuk batch yang masih aktif
+            const filteredHistory = Object.entries(data)
+              .filter(([_, history]: [string, any]) => history.batchId === batchId)
+              .map(([key, history]: [string, any]) => ({
+                id: key,
+                ...history,
+                timestamp: new Date(history.timestamp)
+              }))
+              .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            
+            setChangeHistory(filteredHistory);
+          } else {
+            setChangeHistory([]);
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching change history:', error);
+        setChangeHistory([]);
+      }
+    };
+    
     if (batchId) {
       fetchBatchData();
       fetchDailyProgress(batchId);
+      fetchChangeHistory();
     } else {
       setError('ID batch tidak valid');
       setLoading(false);
@@ -283,20 +338,37 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
     try {
       const database = getFirebaseDatabase();
       const batchRef = ref(database, `chicken_data/${batchId}`);
+      const changeHistoryRef = ref(database, 'change_history');
       
+      // Hapus data batch
       await remove(batchRef);
       
+      // Hapus riwayat perubahan untuk batch ini
+      const snapshot = await get(changeHistoryRef);
+      if (snapshot.exists()) {
+        const changes = snapshot.val();
+        const updates: { [key: string]: null } = {};
+        
+        Object.entries(changes).forEach(([key, change]: [string, any]) => {
+          if (change.batchId === batchId) {
+            updates[key] = null;
+          }
+        });
+        
+        await update(changeHistoryRef, updates);
+      }
+      
       toast({
-        title: "Berhasil",
-        description: "Batch ayam telah dihapus.",
+        title: "Sukses",
+        description: "Batch ayam berhasil dihapus"
       });
       
-      router.replace('/admin/chickens');
+      router.push('/admin/chickens');
     } catch (error) {
-      console.error('Error saat menghapus batch:', error);
+      console.error('Error deleting batch:', error);
       toast({
-        title: "Gagal",
-        description: "Terjadi kesalahan saat menghapus batch. Silakan coba lagi.",
+        title: "Error",
+        description: "Gagal menghapus batch ayam",
         variant: "destructive"
       });
       setDeleting(false);

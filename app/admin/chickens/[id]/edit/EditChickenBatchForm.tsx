@@ -47,6 +47,9 @@ export default function EditChickenBatchForm({ id }: EditChickenBatchFormProps) 
   const [feedAmount, setFeedAmount] = useState<number>(0);
   const [feedType, setFeedType] = useState<string>('');
   const [waterStatus, setWaterStatus] = useState<'OK' | 'NOT OK'>('OK');
+  const [batch, setBatch] = useState<ChickenBatch | null>(null);
+  const [initialQuantity, setInitialQuantity] = useState<number>(0);
+  const [initialDeaths, setInitialDeaths] = useState<number>(0);
 
   useEffect(() => {
     const fetchBatchData = async () => {
@@ -65,90 +68,127 @@ export default function EditChickenBatchForm({ id }: EditChickenBatchFormProps) 
             }
             
             setQuantity(data.quantity || 0);
+            setInitialQuantity(data.quantity || 0);
+            setInitialDeaths(data.deaths || 0);
             setNotes(data.notes || '');
             setAverageWeight(data.averageWeight || 0);
             setDeaths(data.deaths || 0);
             setFeedAmount(data.feedAmount || 0);
             setFeedType(data.feedType || '');
             setWaterStatus(data.waterStatus || 'OK');
+            setBatch(data as ChickenBatch);
             setLoading(false);
           } else {
             console.error('Batch data not found for edit, ID:', id);
             setError('Batch data tidak ditemukan');
             setLoading(false);
+            router.push('/admin/chickens');
           }
         }, (error) => {
           console.error('Firebase onValue error in edit form:', error);
           setError('Terjadi kesalahan saat mengambil data');
           setLoading(false);
+          router.push('/admin/chickens');
         });
       } catch (error) {
         console.error('Error mengambil data batch untuk edit:', error);
         setError('Gagal mengambil data batch');
         setLoading(false);
+        router.push('/admin/chickens');
       }
     };
     
     if (id) {
-    fetchBatchData();
+      fetchBatchData();
     } else {
       setError('ID batch tidak valid');
       setLoading(false);
+      router.push('/admin/chickens');
     }
-  }, [id]);
+  }, [id, router]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!date) {
-      toast({
-        title: "Error",
-        description: "Harap pilih tanggal penetasan yang valid",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSaving(true);
-    setError(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      await updateChickenBatch(id, {
-        quantity: Number(quantity),
-        hatchDate: date,
-        averageWeight: Number(averageWeight),
-        deaths: Number(deaths),
-        feedAmount: Number(feedAmount),
-        feedType,
-        waterStatus: waterStatus as 'OK' | 'NOT OK',
-        notes
-      });
+      // Validasi tanggal menetas
+      if (!date) {
+        toast({
+          title: "Error",
+          description: "Tanggal menetas harus diisi",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Hitung perubahan kematian
+      const currentDeaths = deaths || 0;
+      const previousDeaths = initialDeaths;
+      const deathChange = currentDeaths - previousDeaths;
       
-      // Data batch sudah diupdate, perbarui juga data harian untuk hari ini
-      try {
-        await updateDailyProgress(id, true);
-        console.log('Data harian untuk hari ini berhasil diperbarui');
-      } catch (error) {
-        console.error('Gagal memperbarui data harian:', error);
-        // Tidak perlu menampilkan error ke user karena batch berhasil diupdate
+      // Hitung jumlah ayam yang seharusnya
+      const expectedQuantity = initialQuantity - currentDeaths;
+      
+      // Jika jumlah ayam yang diinput berbeda dengan yang seharusnya, beri peringatan
+      if (quantity !== expectedQuantity) {
+        const confirmed = window.confirm(
+          `Jumlah ayam yang diinput (${quantity}) berbeda dengan perhitungan otomatis (${expectedQuantity}).\n` +
+          `Apakah Anda yakin ingin menggunakan jumlah ayam yang diinput?`
+        );
+        
+        if (!confirmed) {
+          // Jika tidak dikonfirmasi, gunakan perhitungan otomatis
+          setQuantity(expectedQuantity);
+        }
       }
       
+      // Update data batch
+      const updatedBatch = {
+        hatchDate: date,
+        quantity: quantity,
+        deaths: currentDeaths,
+        averageWeight: averageWeight,
+        feedAmount: feedAmount,
+        feedType: feedType,
+        waterStatus: waterStatus,
+        notes: notes,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Update data di Firebase
+      await updateChickenBatch(id, updatedBatch);
+
+      // Update data progress harian jika ada perubahan kematian
+      if (deathChange !== 0) {
+        await updateDailyProgress(id, true);
+      }
+
       toast({
-        title: "Berhasil",
-        description: "Data batch berhasil diperbarui"
+        title: "Sukses",
+        description: "Data batch ayam berhasil diperbarui"
       });
+
       router.push(`/admin/chickens/${id}`);
-    } catch (err) {
-      console.error('Error updating chicken batch:', err);
-      setError('Gagal memperbarui data batch');
+    } catch (error) {
+      console.error('Error updating chicken batch:', error);
       toast({
         title: "Error",
-        description: "Gagal memperbarui data batch",
+        description: "Gagal memperbarui data batch ayam",
         variant: "destructive"
       });
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
+
+  // Tambahkan useEffect untuk mengupdate quantity otomatis saat deaths berubah
+  useEffect(() => {
+    if (deaths !== initialDeaths) {
+      const newQuantity = initialQuantity - deaths;
+      setQuantity(newQuantity);
+    }
+  }, [deaths, initialDeaths, initialQuantity]);
 
   if (loading) {
     return (
