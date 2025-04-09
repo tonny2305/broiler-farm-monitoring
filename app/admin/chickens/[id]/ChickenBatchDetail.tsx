@@ -575,23 +575,132 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Perubahan</TableHead>
-                  <TableHead>Nilai Lama</TableHead>
-                  <TableHead>Nilai Baru</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Perubahan</TableHead>
+                        <TableHead>Nilai Lama</TableHead>
+                        <TableHead>Nilai Baru</TableHead>
+                        <TableHead>Catatan</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {history.map((entry) => (
-                        <TableRow key={entry.id}>
-                          <TableCell>
-                      {format(new Date(entry.timestamp), 'dd MMM yyyy HH:mm', { locale: id })}
-                          </TableCell>
-                    <TableCell>{entry.changeNote}</TableCell>
-                    <TableCell>{entry.previous.averageWeight.toFixed(2)} kg</TableCell>
-                    <TableCell>{entry.current.averageWeight.toFixed(2)} kg</TableCell>
-                        </TableRow>
-                      ))}
+                      {history.map((entry) => {
+                        // Format perubahan untuk setiap field
+                        const formatChange = (field: string, oldValue: any, newValue: any) => {
+                          switch (field) {
+                            case 'quantity':
+                              return `${oldValue} ekor → ${newValue} ekor`;
+                            case 'averageWeight':
+                              return `${oldValue.toFixed(2)} kg → ${newValue.toFixed(2)} kg`;
+                            case 'deaths':
+                              return `${oldValue} ekor → ${newValue} ekor`;
+                            case 'feedAmount':
+                              return `${oldValue.toFixed(2)} kg → ${newValue.toFixed(2)} kg`;
+                            case 'feedType':
+                              return `${oldValue || '-'} → ${newValue || '-'}`;
+                            case 'waterStatus':
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={oldValue === 'OK' ? 'default' : 'destructive'}>
+                                    {oldValue}
+                                  </Badge>
+                                  <span>→</span>
+                                  <Badge variant={newValue === 'OK' ? 'default' : 'destructive'}>
+                                    {newValue}
+                                  </Badge>
+                                </div>
+                              );
+                            case 'hatchDate':
+                              return `${format(new Date(oldValue), 'dd MMM yyyy', { locale: id })} → ${format(new Date(newValue), 'dd MMM yyyy', { locale: id })}`;
+                            default:
+                              return `${oldValue || '-'} → ${newValue || '-'}`;
+                          }
+                        };
+
+                        // Dapatkan semua field yang berubah
+                        const changedFields = Object.keys(entry.current).filter(
+                          key => JSON.stringify(entry.current[key]) !== JSON.stringify(entry.previous[key])
+                        );
+
+                        return (
+                          <TableRow key={entry.id}>
+                            <TableCell>
+                              {format(new Date(entry.timestamp), 'dd MMM yyyy HH:mm', { locale: id })}
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                {changedFields.map(field => (
+                                  <div key={field} className="flex items-center gap-2">
+                                    <span className="font-medium capitalize">
+                                      {field === 'averageWeight' ? 'Berat Rata-rata' :
+                                       field === 'feedAmount' ? 'Jumlah Pakan' :
+                                       field === 'feedType' ? 'Jenis Pakan' :
+                                       field === 'waterStatus' ? 'Status Air' :
+                                       field === 'hatchDate' ? 'Tanggal Tetas' :
+                                       field === 'quantity' ? 'Jumlah Ayam' :
+                                       field === 'deaths' ? 'Kematian' :
+                                       field}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      {formatChange(field, entry.previous[field], entry.current[field])}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                {changedFields.map(field => (
+                                  <div key={field}>
+                                    {field === 'waterStatus' ? (
+                                      <Badge variant={entry.previous[field] === 'OK' ? 'default' : 'destructive'}>
+                                        {entry.previous[field]}
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-muted-foreground">
+                                        {field === 'averageWeight' || field === 'feedAmount' 
+                                          ? `${entry.previous[field].toFixed(2)} kg`
+                                          : field === 'quantity' || field === 'deaths'
+                                            ? `${entry.previous[field]} ekor`
+                                            : field === 'hatchDate'
+                                              ? format(new Date(entry.previous[field]), 'dd MMM yyyy', { locale: id })
+                                              : entry.previous[field] || '-'}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                {changedFields.map(field => (
+                                  <div key={field}>
+                                    {field === 'waterStatus' ? (
+                                      <Badge variant={entry.current[field] === 'OK' ? 'default' : 'destructive'}>
+                                        {entry.current[field]}
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-muted-foreground">
+                                        {field === 'averageWeight' || field === 'feedAmount' 
+                                          ? `${entry.current[field].toFixed(2)} kg`
+                                          : field === 'quantity' || field === 'deaths'
+                                            ? `${entry.current[field]} ekor`
+                                            : field === 'hatchDate'
+                                              ? format(new Date(entry.current[field]), 'dd MMM yyyy', { locale: id })
+                                              : entry.current[field] || '-'}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="max-w-[200px]">
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                {entry.changeNote || '-'}
+                              </p>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
