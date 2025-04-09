@@ -182,18 +182,26 @@ export default function AdminDashboardPage() {
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard Admin</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            className="w-full sm:w-auto justify-start"
+            asChild
+          >
             <Link href="/" className="flex items-center gap-2">
               <Home className="h-4 w-4" />
               <span>Halaman Utama</span>
             </Link>
           </Button>
-          <Button asChild>
-            <Link href="/admin/chickens/add">
-              Tambah Batch Ayam Baru
+          <Button 
+            className="w-full sm:w-auto justify-start"
+            asChild
+          >
+            <Link href="/admin/chickens/add" className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              <span>Tambah Batch Ayam Baru</span>
             </Link>
           </Button>
         </div>
