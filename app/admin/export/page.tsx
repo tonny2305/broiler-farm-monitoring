@@ -334,7 +334,8 @@ export default function ExportPage() {
   }, [selectedBatchId]);
 
   // Fungsi untuk mengekspor data
-  const exportData = (type: 'sensor' | 'chicken' | 'daily') => {
+  const exportData = async (type: 'sensor' | 'chicken' | 'daily') => {
+    setLoading(true);
     try {
       setIsExporting(true);
       console.log(`Memulai ekspor data ${type}`, { sensorData, chickenBatches, dailyProgress });
@@ -634,83 +635,34 @@ export default function ExportPage() {
           <CardDescription>Export data sensor dan ayam dalam berbagai format</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-              <Label>Jenis Data</Label>
-              <Select value={exportType} onValueChange={setExportType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih jenis data" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="data">Data Sensor & Ayam</SelectItem>
-                  <SelectItem value="daily">Progress Harian</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Format Export</Label>
-              <Select value={exportFormat} onValueChange={setExportFormat}>
-                <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih format" />
+                  <Label>Jenis Data</Label>
+                  <Select
+                    value={exportType}
+                    onValueChange={(value) => {
+                      setExportType(value as 'sensor' | 'chicken' | 'progress');
+                      if (value === 'progress') {
+                        setSelectedBatchId('');
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih jenis data" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="json">JSON</SelectItem>
-                      <SelectItem value="csv">CSV</SelectItem>
-                  <SelectItem value="excel">Excel</SelectItem>
-                    </SelectContent>
-                  </Select>
-            </div>
-                </div>
-                
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-              <Label>Rentang Tanggal</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih rentang tanggal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="last7days">7 Hari Terakhir</SelectItem>
-                      <SelectItem value="last30days">30 Hari Terakhir</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                      <SelectItem value="sensor">Data Sensor</SelectItem>
+                      <SelectItem value="chicken">Data Ayam</SelectItem>
+                      <SelectItem value="progress">Progress Harian</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-            {dateRange === 'custom' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {exportType === 'progress' && (
                   <div className="space-y-2">
-                    <Label htmlFor="startDate">Tanggal Mulai</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={startDateInput}
-                      onChange={(e) => {
-                        setStartDateInput(e.target.value);
-                        setStartDate(new Date(e.target.value));
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate">Tanggal Selesai</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={endDateInput}
-                      onChange={(e) => {
-                        setEndDateInput(e.target.value);
-                        setEndDate(new Date(e.target.value));
-                      }}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                {exportType === 'daily' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="batch">Pilih Batch Ayam</Label>
+                    <Label>Batch Ayam</Label>
                     <Select
                       value={selectedBatchId}
                       onValueChange={setSelectedBatchId}
@@ -719,10 +671,9 @@ export default function ExportPage() {
                         <SelectValue placeholder="Pilih batch ayam" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Semua Batch</SelectItem>
                         {chickenBatches.map((batch) => (
                           <SelectItem key={batch.id} value={batch.id}>
-                            Batch {batch.id.slice(-6)} - {format(new Date(batch.hatchDate), 'dd MMM yyyy', { locale: id })}
+                            {batch.id}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -730,7 +681,79 @@ export default function ExportPage() {
                   </div>
                 )}
               </div>
-            )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Rentang Tanggal</Label>
+                  <Select
+                    value={dateRange}
+                    onValueChange={(value) => {
+                      setDateRange(value);
+                      if (value === 'last7days') {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setDate(start.getDate() - 7);
+                        setStartDate(start);
+                        setEndDate(end);
+                      } else if (value === 'last30days') {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setDate(start.getDate() - 30);
+                        setStartDate(start);
+                        setEndDate(end);
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih rentang tanggal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="last7days">7 Hari Terakhir</SelectItem>
+                      <SelectItem value="last30days">30 Hari Terakhir</SelectItem>
+                      <SelectItem value="custom">Rentang Kustom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Format File</Label>
+                  <Select
+                    value={exportFormat}
+                    onValueChange={(value) => setExportFormat(value as 'json' | 'csv' | 'excel')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih format file" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="csv">CSV</SelectItem>
+                      <SelectItem value="excel">Excel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {dateRange === 'custom' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Tanggal Mulai</Label>
+                    <Input
+                      type="date"
+                      value={format(startDate, 'yyyy-MM-dd')}
+                      onChange={(e) => setStartDate(new Date(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tanggal Selesai</Label>
+                    <Input
+                      type="date"
+                      value={format(endDate, 'yyyy-MM-dd')}
+                      onChange={(e) => setEndDate(new Date(e.target.value))}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row gap-2">
@@ -768,7 +791,7 @@ export default function ExportPage() {
                   </>
                 )}
               </Button>
-          {exportType === 'daily' && (
+          {exportType === 'progress' && (
               <Button 
               className="w-full sm:w-auto" 
                 onClick={() => exportData('daily')} 
