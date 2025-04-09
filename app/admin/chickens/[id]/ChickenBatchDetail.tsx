@@ -549,7 +549,10 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
               </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground">Status Air</Label>
-                <Badge variant={batch.waterStatus === 'OK' ? 'default' : 'destructive'}>
+                <Badge 
+                  variant="outline"
+                  className={batch.waterStatus === 'OK' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}
+                >
                   {batch.waterStatus}
                 </Badge>
               </div>
@@ -600,11 +603,17 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
                             case 'waterStatus':
                               return (
                                 <div className="flex items-center gap-2">
-                                  <Badge variant={oldValue === 'OK' ? 'default' : 'destructive'}>
+                                  <Badge 
+                                    variant="outline"
+                                    className={oldValue === 'OK' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}
+                                  >
                                     {oldValue}
                                   </Badge>
                                   <span>→</span>
-                                  <Badge variant={newValue === 'OK' ? 'default' : 'destructive'}>
+                                  <Badge 
+                                    variant="outline"
+                                    className={newValue === 'OK' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}
+                                  >
                                     {newValue}
                                   </Badge>
                                 </div>
@@ -652,7 +661,10 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
                                 {changedFields.map(field => (
                                   <div key={field}>
                                     {field === 'waterStatus' ? (
-                                      <Badge variant={entry.previous[field] === 'OK' ? 'default' : 'destructive'}>
+                                      <Badge 
+                                        variant="outline"
+                                        className={entry.previous[field] === 'OK' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}
+                                      >
                                         {entry.previous[field]}
                                       </Badge>
                                     ) : (
@@ -675,7 +687,10 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
                                 {changedFields.map(field => (
                                   <div key={field}>
                                     {field === 'waterStatus' ? (
-                                      <Badge variant={entry.current[field] === 'OK' ? 'default' : 'destructive'}>
+                                      <Badge 
+                                        variant="outline"
+                                        className={entry.current[field] === 'OK' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}
+                                      >
                                         {entry.current[field]}
                                       </Badge>
                                     ) : (
@@ -735,7 +750,10 @@ export default function ChickenBatchDetail({ batchId }: { batchId: string }) {
                     <TableCell>{progress.deaths} ekor</TableCell>
                     <TableCell>{progress.feedAmount.toFixed(2)} kg</TableCell>
                           <TableCell>
-                      <Badge variant={progress.waterStatus === 'OK' ? 'default' : 'destructive'}>
+                      <Badge 
+                        variant="outline"
+                        className={progress.waterStatus === 'OK' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}
+                      >
                         {progress.waterStatus}
                             </Badge>
                           </TableCell>
