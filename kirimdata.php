@@ -1,47 +1,45 @@
 <?php
-// Konfigurasi database
-$host = "192.168.1.13";  // IP MySQL Workbench
-$user = "root";          // Username MySQL
-$pass = "yobelmartha123"; // Password MySQL
-$dbname = "iot_sensors"; // Nama database
+error_reporting(0); // Nonaktifkan pesan error/warning
 
-// Aktifkan error reporting untuk debugging
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// Konfigurasi koneksi database
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "iot_sensors";
 
-// Koneksi ke database dengan penanganan error
-try {
-    $conn = new mysqli($host, $user, $pass, $dbname);
-    $conn->set_charset("utf8mb4"); // Pastikan menggunakan karakter UTF-8
-} catch (mysqli_sql_exception $e) {
-    die("Koneksi gagal: " . $e->getMessage());
+// Buat koneksi ke database
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Periksa koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Ambil data dari GET request dan validasi
-$temperature = isset($_GET['temperature']) ? floatval($_GET['temperature']) : null;
-$humidity = isset($_GET['humidity']) ? floatval($_GET['humidity']) : null;
-$intensity = isset($_GET['intensity']) ? floatval($_GET['intensity']) : null;
-$ammonia = isset($_GET['ammonia']) ? floatval($_GET['ammonia']) : null;
+// Ambil data dari URL (HTTP GET request)
+$temperature = $_GET['temperature'];
+$humidity = $_GET['humidity'];
+$intensity = $_GET['intensity'];
+$ammonia = $_GET['ammonia'];
+$ch4 = $_GET['ch4'];
+$h2s = $_GET['h2s'];
+$timestamp = $_GET['timestamp'];
 
-// Cek apakah semua nilai valid
-if ($temperature === null || $humidity === null || $intensity === null || $ammonia === null) {
-    die("Error: Data tidak lengkap!");
+// Validasi data (pastikan data tidak kosong)
+if (empty($temperature) || empty($humidity) || empty($intensity) || empty($ammonia) || empty($ch4) || empty($h2s) || empty($timestamp)) {
+    die("Error: Data tidak lengkap.");
 }
 
-// Buat query menggunakan prepared statement untuk keamanan
-$sql = "INSERT INTO sensor_data (temperature, humidity, intensity, ammonia) VALUES (?, ?, ?, ?)";
-$stmt = $conn->prepare($sql);
+// Query SQL untuk menyimpan data ke tabel
+$sql = "INSERT INTO sensor_data (temperature, humidity, intensity, ammonia, ch4, h2s, timestamp)
+        VALUES ('$temperature', '$humidity', '$intensity', '$ammonia', '$ch4', '$h2s', '$timestamp')";
 
-// Bind parameter ke query
-$stmt->bind_param("dddd", $temperature, $humidity, $intensity, $ammonia);
-
-// Eksekusi query dan cek keberhasilan
-if ($stmt->execute()) {
-    echo "Data berhasil disimpan";
+// Eksekusi query
+if ($conn->query($sql) === TRUE) {
+    echo "Data berhasil disimpan.";
 } else {
-    echo "Error: " . $stmt->error;
+    echo "Error: " . $sql . "<br>" . $conn->error;
 }
 
-// Tutup koneksi
-$stmt->close();
+// Tutup koneksi database
 $conn->close();
 ?>
