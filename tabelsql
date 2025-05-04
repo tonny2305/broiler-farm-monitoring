@@ -1,0 +1,10 @@
+CREATE TABLE sensor_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    temperature FLOAT,
+    humidity FLOAT,
+    intensity FLOAT,
+    ammonia FLOAT,
+    ch4 FLOAT,
+    h2s FLOAT,
+    timestamp DATETIME
+);
