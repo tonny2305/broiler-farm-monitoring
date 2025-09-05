@@ -607,16 +607,16 @@ export default function DashboardPage() {
         }
         
       case 'ammonia':
-        // Kategori berdasarkan amonia (ppm)
-        return value < 10 ? 'aman' : value >= 10 && value <= 25 ? 'berisiko' : 'bahaya';
-        
+        // Amonia (ppm)
+        return value <= 20 ? 'aman' : value > 20 && value <= 25 ? 'berisiko' : 'bahaya';
+
       case 'methane':
-        // Kategori berdasarkan metana (ppm)
-        return value < 1.65 ? 'aman' : value >= 1.65 && value <= 2.5 ? 'berisiko' : 'bahaya';
-        
+        // Metana (ppm)
+        return value <= 1000 ? 'aman' : value > 1000 && value <= 1500 ? 'berisiko' : 'bahaya';
+
       case 'h2s':
-        // Kategori berdasarkan hidrogen sulfida (ppm)
-        return value < 0.1 ? 'aman' : value >= 0.1 && value <= 2 ? 'berisiko' : 'bahaya';
+        // Hidrogen Sulfida (ppm)
+        return value <= 5 ? 'aman' : value > 5 && value <= 10 ? 'berisiko' : 'bahaya';
         
       default:
         return 'aman';
@@ -666,24 +666,46 @@ export default function DashboardPage() {
   };
 
   // Fungsi untuk menghitung nilai progress bar berdasarkan parameter
-  const getProgressValue = (value: number, type: keyof SensorData) => {
-    switch (type) {
-      case 'temperature':
-        return ((value / 40) * 100);
-      case 'humidity':
-        return value; // Kelembaban sudah dalam persentase
-      case 'ammonia':
-        return ((value / 30) * 100); // Maksimal 30 ppm
-      case 'methane':
-        return ((value / 3) * 100); // Maksimal 3 ppm
-      case 'h2s':
-        return ((value / 3) * 100); // Maksimal 3 ppm
-      case 'intensity':
-        return ((value / 50) * 100); // Maksimal 50 lux
-      default:
-        return 0;
-    }
-  };
+// Nilai maksimal (skala) untuk progress bar
+const MAX_TEMP = 40;      // °C
+const MAX_HUMID = 100;    // %
+const MAX_NH3_PPM = 25;   // Amonia
+const MAX_CH4_PPM = 1000; // Metana
+const MAX_H2S_PPM = 10;   // Hidrogen sulfida
+const MAX_LUX  = 50;      // Lux (skala tampilan)
+
+// Fungsi clamp → batasi hasil ke dalam rentang lo–hi
+function clamp(x: number, lo = 0, hi = 100) {
+  if (x < lo) return lo;
+  if (x > hi) return hi;
+  return x;
+}
+
+// Fungsi untuk menghitung nilai progress bar berdasarkan parameter
+const getProgressValue = (value: number, type: keyof SensorData) => {
+  switch (type) {
+    case 'temperature':
+      return clamp((value / MAX_TEMP) * 100);
+
+    case 'humidity':
+      return clamp((value / MAX_HUMID) * 100);
+
+    case 'ammonia':
+      return clamp((value / MAX_NH3_PPM) * 100);
+
+    case 'methane':
+      return clamp((value / MAX_CH4_PPM) * 100);
+
+    case 'h2s':
+      return clamp((value / MAX_H2S_PPM) * 100);
+
+    case 'intensity':
+      return clamp((value / MAX_LUX) * 100);
+
+    default:
+      return 0;
+  }
+};
 
   // Fungsi untuk mendapatkan rentang nilai ideal
   const getIdealRange = (type: keyof SensorData) => {
@@ -691,18 +713,21 @@ export default function DashboardPage() {
     
     switch (type) {
       case 'temperature':
-        if (chickenAge <= 7) return "32°C - 35°C";
-        else if (chickenAge <= 14) return "28°C - 30°C";
-        else if (chickenAge <= 21) return "24°C - 26°C";
-        else return "18°C - 24°C";
+        if (chickenAge <= 7) return "32°C - 34°C";   // starter
+        else if (chickenAge <= 14) return "28°C - 30°C"; // grower awal
+        else if (chickenAge <= 21) return "26°C - 28°C"; // grower lanjut
+        else return "24°C - 28°C";  // finisher
       case 'humidity':
-        return "50% - 70%";
+           return "50% - 70%";
       case 'ammonia':
-        return "< 10 ppm";
+        return "0 - 25 ppm";
+        //return "< 10 ppm";
       case 'methane':
-        return "< 1.65 ppm";
+        //return "< 1.65 ppm";
+        return "0 - 1000 ppm";
       case 'h2s':
-        return "< 0.1 ppm";
+        //return "< 0.1 ppm";
+        return "0 - 10 ppm";
       case 'intensity':
         if (chickenAge <= 7) return "20 - 40 lux";
         else if (chickenAge <= 21) return "10 - 20 lux";
